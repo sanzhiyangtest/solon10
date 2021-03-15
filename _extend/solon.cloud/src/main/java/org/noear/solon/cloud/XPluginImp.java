@@ -1,12 +1,10 @@
 package org.noear.solon.cloud;
 
-import org.noear.solon.cloud.impl.CloudDiscoveryServiceLocalImp;
+import org.noear.solon.cloud.impl.*;
 import org.noear.solon.logging.AppenderManager;
 import org.noear.solon.Solon;
 import org.noear.solon.SolonApp;
 import org.noear.solon.Utils;
-import org.noear.solon.cloud.impl.CloudLoadBalanceFactory;
-import org.noear.solon.cloud.impl.CloudLogAppender;
 import org.noear.solon.core.Aop;
 import org.noear.solon.core.Bridge;
 import org.noear.solon.core.Plugin;
@@ -15,7 +13,6 @@ import org.noear.solon.core.util.PrintUtil;
 import org.noear.solon.core.wrap.ClassWrap;
 import org.noear.solon.cloud.annotation.CloudConfig;
 import org.noear.solon.cloud.annotation.CloudEvent;
-import org.noear.solon.cloud.impl.CloudBeanInjector;
 import org.noear.solon.cloud.model.Config;
 import org.noear.solon.cloud.model.Instance;
 
@@ -65,10 +62,9 @@ public class XPluginImp implements Plugin {
 
         Aop.context().beanInjectorAdd(CloudConfig.class, CloudBeanInjector.instance);
 
-
         if(CloudClient.discovery() == null){
             //如果没有发现服力，注册本地发现服务
-            CloudManager.register(new CloudDiscoveryServiceLocalImp());
+            CloudManager.register(new CloudDiscoveryServiceLocalImpl());
         }
 
         if (CloudClient.discovery() != null) {
