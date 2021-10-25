@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 /**
  * 云端事件订阅
  *
- * @author noear
+ * @author noear, iYarnFog
  * @since 1.2
  */
 @Target({ElementType.TYPE})
@@ -40,4 +40,12 @@ public @interface CloudEvent {
      * 通道：用于同时支持多个消息框架
      * */
     String channel() default "";
+
+    /**
+     * 消息实体, 用于自动填充Group、Channel等信息
+     * 注意: Topic如果为空会覆盖为 Class.getName() ！！！
+     * 注意: 该选项会覆盖上述所有信息！！！
+     **/
+    Class<?> entity() default Object.class;
+
 }
