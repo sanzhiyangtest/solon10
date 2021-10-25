@@ -10,7 +10,7 @@ import org.noear.solon.core.BeanBuilder;
 import org.noear.solon.core.BeanWrap;
 
 /**
- * @author noear
+ * @author noear, iYarnFog
  * @since 1.4
  */
 public class CloudEventBeanBuilder implements BeanBuilder<CloudEvent> {
@@ -22,12 +22,26 @@ public class CloudEventBeanBuilder implements BeanBuilder<CloudEvent> {
             throw new IllegalArgumentException("Missing CloudEventService component");
         }
 
+        String topic = "";
+
+        if (anno.entity() != Object.class) {
+            // 默认 Topic 为 事件实体类的 Class Reference
+            topic = anno.entity().getName();
+            anno = anno.entity().getAnnotation(CloudEvent.class);
+            if (anno == null) {
+                throw new IllegalArgumentException("Missing CloudEvent annotation on event entity.");
+            }
+        }
+
         if (bw.raw() instanceof CloudEventHandler) {
             CloudManager.register(anno, bw.raw());
 
             if (CloudClient.event() != null) {
-                //支持${xxx}配置
-                String topic = Solon.cfg().getByParse(Utils.annoAlias(anno.value(), anno.topic()));
+                // 如果用户设置了 Topic 就覆盖掉
+                if (anno.value().isEmpty() && anno.topic().isEmpty()) {
+                    //支持${xxx}配置
+                    topic = Solon.cfg().getByParse(Utils.annoAlias(anno.value(), anno.topic()));
+                }
                 //支持${xxx}配置
                 String group = Solon.cfg().getByParse(anno.group());
 
@@ -36,4 +50,5 @@ public class CloudEventBeanBuilder implements BeanBuilder<CloudEvent> {
             }
         }
     }
+
 }
