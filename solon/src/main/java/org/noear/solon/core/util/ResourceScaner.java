@@ -164,7 +164,7 @@ public class ResourceScaner {
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            EventBus.push(e);
         }
 
     }
