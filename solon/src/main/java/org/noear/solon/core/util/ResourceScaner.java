@@ -11,10 +11,14 @@ import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 /**
  * 资源扫描器（用于扫描插件配置等资源...）
@@ -61,9 +65,7 @@ public class ResourceScaner {
                     doScanByJar(jar, path, filter, urls);
                 } else if ("resource".equals(p)) {
                     //3.3 找到resource(in graalvm  native image)
-                    if (Solon.cfg() != null) {
                         doScanByResource(path, filter, urls);
-                    }
                 }
             }
         } catch (IOException ex) {
@@ -142,27 +144,29 @@ public class ResourceScaner {
     }
 
     /**
-     * graalvm 里的 scan 通过预处理，存放到配置文件，key= solon.scan (@since 1.5)
+     * graalvm 里的 scan (@since 1.5)
      *
      * @param path   路径
      * @param filter 过滤条件
      */
     private static void doScanByResource(String path, Predicate<String> filter, Set<String> urls) {
-        String sc = Solon.cfg().get("solon.scan");
 
-        if (sc != null && !"".equals(sc)) {
-            String[] ss = sc.split(",");
-
-            for (String p : ss) {
-                p = p.trim();
-
-                if (!p.startsWith(path) || !filter.test(p)) {
-                    // 非指定包路径， 非目标后缀
-                    continue;
+        String root="classes/"+path;
+        String rootReg="classes[\\\\/]";
+        try (Stream<Path> paths = Files.walk(Paths.get(root))) {
+            paths.filter(Files::isRegularFile).forEach((Path p) -> {
+                 String filepath=p.toString();
+                filepath = filepath.trim().replaceAll(rootReg,"").replaceAll("[\\\\/]","/");
+//                PrintUtil.greenln(filepath);
+                //  非目标后缀 过滤掉
+                if ( filter.test(filepath)) {
+                    urls.add(filepath);
                 }
-
-                urls.add(p);
-            }
+            });
+        } catch (IOException e) {
+            EventBus.push(e);
         }
+
     }
+
 }
