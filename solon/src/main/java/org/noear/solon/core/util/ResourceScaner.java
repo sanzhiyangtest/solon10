@@ -144,7 +144,7 @@ public class ResourceScaner {
     }
 
     /**
-     * graalvm 里的 scan 通过预处理，存放到配置文件，key= solon.scan (@since 1.5)
+     * graalvm 里的 scan (@since 1.5)
      *
      * @param path   路径
      * @param filter 过滤条件
