@@ -157,7 +157,7 @@ public class ResourceScaner {
             paths.filter(Files::isRegularFile).forEach((Path p) -> {
                  String filepath=p.toString();
                 filepath = filepath.trim().replaceAll(rootReg,"").replaceAll("[\\\\/]","/");
-                PrintUtil.greenln(filepath);
+//                PrintUtil.greenln(filepath);
                 //  非目标后缀 过滤掉
                 if ( filter.test(filepath)) {
                     urls.add(filepath);
