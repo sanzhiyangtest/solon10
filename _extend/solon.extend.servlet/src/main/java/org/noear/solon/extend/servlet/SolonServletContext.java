@@ -204,9 +204,19 @@ public class SolonServletContext extends Context {
             _paramMap = new NvMap();
 
             try {
-                if(autoMultipart()) {
-                    lazyLoadMultipart();
+                if(isMultipart()){
+                    //上传文件需要 multipart/form-data
+                    if(isMultipartFormData()){
+                        if(autoMultipart()) {
+                            lazyLoadMultipart();
+                        }
+                    }else{//普通表单
+                        lazyLoadMultipart();
+                    }
                 }
+//                if(autoMultipart()) {
+//                    lazyLoadMultipart();
+//                }
 
                 Enumeration<String> names = _request.getParameterNames();
 
