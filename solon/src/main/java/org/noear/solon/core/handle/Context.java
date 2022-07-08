@@ -191,7 +191,18 @@ public abstract class Context {
     /**
      * 获取请求的URI路径
      */
-    public abstract String path();
+    private String path;
+    public String path() {
+        if (path == null && url() != null) {
+            path = uri().getPath();
+
+            if (path.contains("//")) {
+                path = Utils.trimDuplicates(path, '/');
+            }
+        }
+
+        return path;
+    }
 
     /**
      * 设置新路径

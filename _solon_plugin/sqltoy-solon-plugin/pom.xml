@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>1.9.1</version>
+        <version>1.9.2-M3</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -16,7 +16,7 @@
 
 
     <properties>
-        <sqltoy.ver>5.2.2</sqltoy.ver>
+        <sqltoy.ver>5.2.3</sqltoy.ver>
         <caffeine.ver>2.9.2</caffeine.ver>
         <mongo.version>3.12.11</mongo.version>
     </properties>

@@ -6,7 +6,7 @@
 
     <groupId>org.noear.bundle</groupId>
     <artifactId>solon-extend-bundle</artifactId>
-    <version>1.9.1</version>
+    <version>1.9.2-M3</version>
     <packaging>pom</packaging>
 
 
@@ -37,6 +37,8 @@
         <!-- @Deprecated -->
         <module>../../__deprecated/solon.extend.aspect</module>
         <module>../../_solon_extend/solon.aspect</module>
+
+        <module>../../_solon_extend/solon.vault</module>
 
         <!-- @Deprecated -->
         <module>../../__deprecated/solon.extend.staticfiles</module>

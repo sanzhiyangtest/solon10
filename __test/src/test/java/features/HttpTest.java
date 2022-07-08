@@ -34,10 +34,17 @@ public class HttpTest extends HttpTestBase {
     }
 
     @Test
+    public void test11_2() throws IOException {
+        assert path("/demo1//run0/?str=").head() == 200;
+        assert path("/demo1//run2//ip").head() == 200;
+
+        //NumberUtils.isNumber()
+    }
+
+    @Test
     public void test12_get() throws IOException {
         assert path("/demo1/run1/*").get().equals("http://localhost:8080/demo1/run1/*");
     }
-
 
     @Test
     public void test12_post() throws IOException {
@@ -177,8 +184,10 @@ public class HttpTest extends HttpTestBase {
     @Test
     public void test2e() throws IOException {
         assert path("/demo2/param/d/*?name=中文").get().equals("中文");
+        assert path("/demo2/param/d/*?name=https://a.a.a/b/c/_xxx").get().equals("https://a.a.a/b/c/_xxx");
 
         assert path("/demo2/param/d/*").data("name", "中文").post().equals("中文");
+        assert path("/demo2/param/d/*").data("name", "https://a.a.a/b/c/_xxx").post().equals("https://a.a.a/b/c/_xxx");
     }
 
     @Test
