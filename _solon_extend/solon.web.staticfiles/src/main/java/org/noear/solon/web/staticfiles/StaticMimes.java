@@ -74,6 +74,7 @@ public class StaticMimes {
         mimeMap.put(".mac", "image/x-macpaint");
         mimeMap.put(".man", "text/troff");
         mimeMap.put(".mathml", "application/mathml+xml");
+        mimeMap.put(".map", "application/json");
         mimeMap.put(".me", "text/troff");
         mimeMap.put(".mid", "audio/midi");
         mimeMap.put(".midi", "audio/midi");
