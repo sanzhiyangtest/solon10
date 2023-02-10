@@ -15,6 +15,7 @@ import org.noear.solon.core.BeanWrap;
 import org.noear.solon.core.Props;
 import org.noear.solon.core.VarHolder;
 import org.noear.solon.core.event.EventBus;
+import org.noear.solon.core.util.ResourceUtil;
 import org.noear.solon.core.util.ScanUtil;
 import org.noear.solon.extend.mybatis.MybatisAdapter;
 import org.noear.solon.extend.mybatis.tran.SolonManagedTransactionFactory;
@@ -116,16 +117,10 @@ public class MybatisAdapterDefault implements MybatisAdapter {
                             continue;
                         }
 
-                        if (val.endsWith(".class")) {
-                            //type class
-                            Class<?> clz = Utils.loadClass(val.substring(0, val.length() - 6));
-                            if (clz != null) {
-                                getConfiguration().getTypeAliasRegistry().registerAlias(clz);
-                            }
-                        } else {
-                            //package
-                            getConfiguration().getTypeAliasRegistry().registerAliases(val);
-                        }
+                        //package or type class
+                        ResourceUtil.resolveClasss(val).forEach(clz -> {
+                            getConfiguration().getTypeAliasRegistry().registerAlias(clz);
+                        });
                     }
                 }
 
@@ -136,16 +131,10 @@ public class MybatisAdapterDefault implements MybatisAdapter {
                             continue;
                         }
 
-                        if (val.endsWith(".class")) {
-                            //type class
-                            Class<?> clz = Utils.loadClass(val.substring(0, val.length() - 6));
-                            if (clz != null) {
-                                getConfiguration().getTypeHandlerRegistry().register(clz);
-                            }
-                        } else {
-                            //package
-                            getConfiguration().getTypeHandlerRegistry().register(val);
-                        }
+                        //package || type class
+                        ResourceUtil.resolveClasss(val).forEach(clz -> {
+                            getConfiguration().getTypeHandlerRegistry().register(clz);
+                        });
                     }
                 }
             }
@@ -169,7 +158,7 @@ public class MybatisAdapterDefault implements MybatisAdapter {
                             //mapper xml
                             if (val.contains("**")) {
                                 //新方法，替代旧的 *.xml （基于表达式；更自由，更语义化）
-                                Utils.resolvePaths(val).forEach(uri->{
+                                ResourceUtil.resolvePaths(val).forEach(uri -> {
                                     addMapperByXml(uri);
                                 });
                             } else if (val.endsWith("*.xml")) {
@@ -184,18 +173,12 @@ public class MybatisAdapterDefault implements MybatisAdapter {
                             }
 
                             mappers.add(val);
-                        } else if (val.endsWith(".class")) {
-                            //mapper class
-                            val = val.replace("/", ".");
-
-                            Class<?> clz = Utils.loadClass(val.substring(0, val.length() - 6));
-                            if (clz != null) {
-                                getConfiguration().addMapper(clz);
-                                mappers.add(val);
-                            }
                         } else {
-                            //package
-                            getConfiguration().addMappers(val);
+                            //package or mapper class
+                            ResourceUtil.resolveClasss(val).forEach(clz -> {
+                                getConfiguration().addMapper(clz);
+                            });
+
                             mappers.add(val);
                         }
                     }

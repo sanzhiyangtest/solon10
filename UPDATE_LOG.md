@@ -9,6 +9,11 @@
 * 提醒1：之前没有使用弃用接口的，可以直接升级 <br>
 * 提醒2：有使用弃用接口的。建议先升级到 1.12.4；替换弃用代码后，再升级到 2.0.0
 
+### v2.1.1
+* 新增 solon.health.detector 插件
+* 增强 detector-solon-plugin 扩展能力
+* 修复 mybatis-solon-plugin 与 solon-maven-plugin 的兼容性
+
 ### v2.1.0
 * 新增 activemq-solon-cloud-plugin 插件
 * 新增 solon.logging.log4j2（复制于 log4j2-solon-plugin）
