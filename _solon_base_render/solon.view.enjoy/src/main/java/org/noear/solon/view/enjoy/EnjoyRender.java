@@ -59,7 +59,8 @@ public class EnjoyRender implements Render {
         if (Utils.isEmpty(baseUri) == false) {
             _baseUri = baseUri;
         }
-
+        Engine.setFastMode(true);
+        Engine.setChineseExpression(true);
         forDebug();
         forRelease();
 
@@ -105,7 +106,6 @@ public class EnjoyRender implements Render {
 
         try {
             if (dir != null && dir.exists()) {
-                provider_debug.setDevMode(true);
                 provider_debug.setBaseTemplatePath(dir.getPath());
                 provider_debug.setSourceFactory(new FileSourceFactory());
             }
