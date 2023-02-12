@@ -8,7 +8,7 @@ import java.io.StringWriter;
 import java.util.Map;
 
 public class RenderUtil {
-    public static String render(String template, Map<String, Object> model) throws Exception {
+    public static String render(String template, Map<String, Object> model) {
         TemplateEngine engine = new TemplateEngine();
         StringTemplateResolver resolver = new StringTemplateResolver();
         engine.setTemplateResolver(resolver);
