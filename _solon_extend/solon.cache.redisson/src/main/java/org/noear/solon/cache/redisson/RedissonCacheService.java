@@ -18,7 +18,7 @@ public class RedissonCacheService implements CacheService {
 
     protected final RedissonClient client;
 
-    public RedissonCacheService(Properties prop){
+    public RedissonCacheService(Properties prop) {
         this(prop, prop.getProperty("keyHeader"), 0);
     }
 
@@ -31,7 +31,7 @@ public class RedissonCacheService implements CacheService {
             }
         }
 
-        if(Utils.isEmpty(keyHeader)){
+        if (Utils.isEmpty(keyHeader)) {
             keyHeader = Solon.cfg().appName();
         }
 
@@ -51,14 +51,15 @@ public class RedissonCacheService implements CacheService {
 
     /**
      * 获取 RedisClient
-     * */
-    public RedissonClient client(){
+     */
+    public RedissonClient client() {
         return client;
     }
 
     @Override
     public void store(String key, Object obj, int seconds) {
-        client.getBucket(key).set(obj,seconds, TimeUnit.SECONDS);
+        seconds = seconds <= 0 ? this._defaultSeconds : seconds;
+        client.getBucket(key).set(obj, seconds, TimeUnit.SECONDS);
     }
 
     @Override
