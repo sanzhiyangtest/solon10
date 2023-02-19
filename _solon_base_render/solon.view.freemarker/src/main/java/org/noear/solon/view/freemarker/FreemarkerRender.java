@@ -6,7 +6,7 @@ import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateNotFoundException;
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
-import org.noear.solon.core.*;
+import org.noear.solon.core.JarClassLoader;
 import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.ModelAndView;
