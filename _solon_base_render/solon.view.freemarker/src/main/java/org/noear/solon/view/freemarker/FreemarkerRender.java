@@ -6,7 +6,7 @@ import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateNotFoundException;
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
-import org.noear.solon.core.*;
+import org.noear.solon.core.JarClassLoader;
 import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.ModelAndView;
@@ -19,6 +19,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FreemarkerRender implements Render {
     private static FreemarkerRender _global;
@@ -37,6 +39,8 @@ public class FreemarkerRender implements Render {
 
     private String _baseUri = "/WEB-INF/view/";
     private ClassLoader classLoader;
+
+    private Map<String,Object> _sharedVariable = new HashMap<>();
 
     //不要要入参，方便后面多视图混用
     //
@@ -143,7 +147,7 @@ public class FreemarkerRender implements Render {
     public void putVariable(String name, Object value) {
         try {
             provider.setSharedVariable(name, value);
-
+            _sharedVariable.put(name,value);
             if (provider_debug != null) {
                 provider_debug.setSharedVariable(name, value);
             }
@@ -161,7 +165,7 @@ public class FreemarkerRender implements Render {
         if (obj instanceof ModelAndView) {
             render_mav((ModelAndView) obj, ctx, () -> ctx.outputStream());
         } else {
-            ctx.output(obj.toString());
+            ctx.output(RenderUtil.render(obj.toString(),_sharedVariable));
         }
     }
 
@@ -177,7 +181,7 @@ public class FreemarkerRender implements Render {
 
             return outputStream.toString();
         } else {
-            return obj.toString();
+            return RenderUtil.render(obj.toString(),_sharedVariable);
         }
     }
 

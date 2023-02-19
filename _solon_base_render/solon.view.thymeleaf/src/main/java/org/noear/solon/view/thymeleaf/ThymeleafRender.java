@@ -2,7 +2,7 @@ package org.noear.solon.view.thymeleaf;
 
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
-import org.noear.solon.core.*;
+import org.noear.solon.core.JarClassLoader;
 import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.ModelAndView;
@@ -14,7 +14,10 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
@@ -155,7 +158,7 @@ public class ThymeleafRender implements Render {
         if (obj instanceof ModelAndView) {
             render_mav((ModelAndView) obj, ctx, () -> ctx.outputStream());
         } else {
-            ctx.output(obj.toString());
+            ctx.output(RenderUtil.render(obj.toString(),_sharedVariable));
         }
     }
 
@@ -171,7 +174,7 @@ public class ThymeleafRender implements Render {
 
             return outputStream.toString();
         } else {
-            return obj.toString();
+            return  RenderUtil.render(obj.toString(),_sharedVariable);
         }
     }
 
