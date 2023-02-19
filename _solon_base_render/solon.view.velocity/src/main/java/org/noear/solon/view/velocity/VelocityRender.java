@@ -143,8 +143,11 @@ public class VelocityRender implements Render {
 
         provider = new RuntimeInstance();
 
-        String root_path = Utils.getResource(_baseUri).getPath();
-
+        URL resource = Utils.getResource(_baseUri);
+        if(resource == null){
+            return;
+        }
+        String root_path = resource.getPath();
         provider.setProperty(Velocity.FILE_RESOURCE_LOADER_CACHE, true);
         provider.setProperty(Velocity.FILE_RESOURCE_LOADER_PATH, root_path);
     }
@@ -177,7 +180,7 @@ public class VelocityRender implements Render {
         if (obj instanceof ModelAndView) {
             render_mav((ModelAndView) obj, ctx, () -> ctx.outputStream());
         } else {
-            ctx.output(obj.toString());
+            ctx.output(RenderUtil.render(obj.toString(),_sharedVariable));
         }
     }
 
@@ -193,7 +196,7 @@ public class VelocityRender implements Render {
 
             return outputStream.toString();
         } else {
-            return obj.toString();
+            return RenderUtil.render(obj.toString(),_sharedVariable);
         }
     }
 

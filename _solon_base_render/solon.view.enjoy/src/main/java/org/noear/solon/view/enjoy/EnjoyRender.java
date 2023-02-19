@@ -59,7 +59,8 @@ public class EnjoyRender implements Render {
         if (Utils.isEmpty(baseUri) == false) {
             _baseUri = baseUri;
         }
-
+        Engine.setFastMode(true);
+        Engine.setChineseExpression(true);
         forDebug();
         forRelease();
 
@@ -105,7 +106,6 @@ public class EnjoyRender implements Render {
 
         try {
             if (dir != null && dir.exists()) {
-                provider_debug.setDevMode(true);
                 provider_debug.setBaseTemplatePath(dir.getPath());
                 provider_debug.setSourceFactory(new FileSourceFactory());
             }
@@ -190,7 +190,7 @@ public class EnjoyRender implements Render {
         if (obj instanceof ModelAndView) {
             render_mav((ModelAndView) obj, ctx, () -> ctx.outputStream());
         } else {
-            ctx.output(obj.toString());
+            ctx.output(RenderUtil.render(obj.toString(),provider.getEngineConfig().getSharedObjectMap()));
         }
     }
 
@@ -206,7 +206,7 @@ public class EnjoyRender implements Render {
 
             return outputStream.toString();
         } else {
-            return obj.toString();
+            return RenderUtil.render(obj.toString(),provider.getEngineConfig().getSharedObjectMap());
         }
     }
 
