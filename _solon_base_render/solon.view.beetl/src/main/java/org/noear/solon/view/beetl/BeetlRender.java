@@ -179,7 +179,7 @@ public class BeetlRender implements Render {
         if (obj instanceof ModelAndView) {
             render_mav((ModelAndView) obj, ctx, () -> ctx.outputStream());
         } else {
-            ctx.output(obj.toString());
+            ctx.output(RenderUtil.render(obj.toString(),provider.getSharedVars()));
         }
     }
 
@@ -195,7 +195,7 @@ public class BeetlRender implements Render {
 
             return outputStream.toString();
         } else {
-            return obj.toString();
+            return RenderUtil.render(obj.toString(),provider.getSharedVars());
         }
     }
 

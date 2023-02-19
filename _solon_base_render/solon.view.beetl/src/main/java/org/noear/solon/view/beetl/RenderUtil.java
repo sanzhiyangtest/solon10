@@ -13,6 +13,10 @@ public class RenderUtil {
         StringTemplateResourceLoader resourceLoader = new StringTemplateResourceLoader();
         Configuration cfg = Configuration.defaultConfiguration();
         GroupTemplate gt = new GroupTemplate(resourceLoader, cfg);
+        return render(gt,templateString,model);
+    }
+
+    public static String render(GroupTemplate gt, String templateString, Map<String, Object> model) throws IOException {
         Template t = gt.getTemplate(templateString);
         t.binding(model);
         return t.render();
