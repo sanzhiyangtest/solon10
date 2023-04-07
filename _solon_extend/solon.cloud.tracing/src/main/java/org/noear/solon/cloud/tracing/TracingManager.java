@@ -5,6 +5,7 @@ import org.noear.nami.NamiManager;
 import org.noear.solon.Solon;
 import org.noear.solon.cloud.tracing.annotation.Tracing;
 import org.noear.solon.cloud.tracing.annotation.TracingInterceptor;
+import org.noear.solon.cloud.tracing.integration.AsyncInvocationTracing;
 import org.noear.solon.cloud.tracing.integration.NamiFilterTracing;
 import org.noear.solon.cloud.tracing.integration.ErrorListenerTracing;
 import org.noear.solon.cloud.tracing.integration.SolonFilterTracing;
@@ -39,6 +40,9 @@ public class TracingManager {
 
         //添加 @Tracing 适配
         Solon.context().beanAroundAdd(Tracing.class, new TracingInterceptor());
+
+        //添加 @Async 适配
+        AsyncInvocationTracing.enableTracing();
     }
 
     /**

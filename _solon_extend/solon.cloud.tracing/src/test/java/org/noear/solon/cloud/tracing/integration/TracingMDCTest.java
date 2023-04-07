@@ -23,4 +23,9 @@ public class TracingMDCTest extends AbstractHttpTester {
         assertFalse(rsp.isEmpty());
     }
 
+    @Test
+    public void testAsync() throws Exception {
+        String rsp = path("/hello/async").get();
+    }
+
 }
