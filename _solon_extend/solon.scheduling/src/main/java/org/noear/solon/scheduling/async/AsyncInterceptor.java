@@ -16,6 +16,8 @@ import org.noear.solon.scheduling.annotation.EnableAsync;
 public class AsyncInterceptor implements Interceptor {
     boolean enableAsync;
 
+    IAsyncInvocationRunnableFactory runnableFactory;
+
     public AsyncInterceptor() {
         enableAsync = Solon.app().source().getAnnotation(EnableAsync.class) != null;
     }
@@ -26,7 +28,8 @@ public class AsyncInterceptor implements Interceptor {
             Async anno = inv.method().getAnnotation(Async.class);
 
             if (anno != null) {
-                RunUtil.async(new AsyncInvocationRunnable(inv));
+                Runnable runnable = createAsyncRunnable(inv);
+                RunUtil.async(runnable);
                 return null;
             } else {
                 return inv.invoke();
@@ -34,5 +37,16 @@ public class AsyncInterceptor implements Interceptor {
         } else {
             return inv.invoke();
         }
+    }
+
+    private Runnable createAsyncRunnable(Invocation inv) {
+        if (runnableFactory == null) {
+            runnableFactory = Solon.context().getBean(IAsyncInvocationRunnableFactory.class);
+            if (runnableFactory == null) {
+                runnableFactory = new DefaultAsyncInvocationRunnableFactory();
+            }
+        }
+
+        return runnableFactory.create(inv);
     }
 }
