@@ -30,6 +30,11 @@ import java.util.function.Predicate;
  * @since 1.0
  * */
 public final class SolonProps extends Props {
+    /**
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = -7512101107997842335L;
+    
     private NvMap args;
     private Class<?> source;
     private URL sourceLocation;
@@ -309,7 +314,7 @@ public final class SolonProps extends Props {
             return;
         }
 
-        for (Map.Entry kv : sysPropOrg.entrySet()) {
+        for (Map.Entry<?, ?> kv : sysPropOrg.entrySet()) {
             if (kv.getKey() instanceof String) {
                 String key = (String) kv.getKey();
 
@@ -399,7 +404,7 @@ public final class SolonProps extends Props {
 
     private String serverHost;
     /**
-     * 获取应用主端口(默认:8080)
+     * 获取应用主机名(默认:8080)
      */
     public String serverHost() {
         if (serverHost == null) {
