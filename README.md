@@ -1,5 +1,5 @@
 <h1 align="center" style="text-align:center;">
-<img src="solon_icon.png" width="128" />
+<img src="solon_icon.png" width="128" /> 
 <br />
 Solon v2.2.12
 </h1>
