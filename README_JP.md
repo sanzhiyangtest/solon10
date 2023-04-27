@@ -48,28 +48,27 @@ Solon v2.2.13
 
 <hr />
 
-起動が5～10倍速い、qpsは2～3倍高い、運転時のメモリ節約率は1/3～1/2、パッケージは1/2～1/10に縮小できます
+起動が5～10倍速く、qpsは2～3倍高く、ランタイムメモリの使用量1/3〜1/2少なく、パッケージは1/2～1/10小さくなります。
 
 <hr />
 
-## 介绍：
+## 紹介：
 
-**Solon** ゼロから構築します。独自の標準規範と開放生態がある。異なるエコプラグインを組み合わせて異なるニーズに対応し、カスタマイズしやすく、迅速に開発できる:
+**Solon** ゼロから構築されます。独自の標準規範と開放的なエコシステムを備えており、異なるエコプラグインを組み合わせて、様々なニーズに対応し、迅速にカスタマイズや開発が可能です。
+* **理性的・簡易的・効率的・開放的・エコシステム的**
+* JDK8、JDK11、JDK17、JDK20に対応可能
+* Http、WebSocket、Socket の3つの信号を統合した開発体験 (通称: 3ソース統合)
+* 「注釈」と「手動」の2種類のモードをサポートし、必要に応じて自由に操作可能  
+* Not Servlet、あらゆる通信インフラストラクチャに適合（最小0.3 mでrpcアーキテクチャが実行可能）
+* 自作のIOC/AOPコンテナー
+* Web、Data、Job、Remoting、Cloudなどの開発シナリオをサポート
+* Handler+ContextとListener+Messageの2つのイベントモデルを組み合わせる
+* プラグイン式の拡張を強調し、異なるアプリケーションシーンに対応可能
+* ビジネスプラグインのホットプラグ・ホットダイヤルをサポート
+* GraalVm Nativeパッケージをサポート
 
-* **自制、簡潔、高効率、開放、生態**
-* 支持 JDK8、JDK11、JDK17、JDK20
-* Http、WebSocket、Socketの3つの信号統合の開発体験（通称：3ソース統合）
-* 「注記」と「手動」の2種類のモードをサポートし、必要に応じて自由に操作する
-* Not Servlet、あらゆるインフラストラクチャに適合（最小0.3 mでrpcアーキテクチャを実行）
-* 自作 IOC/AOP 容器
-* Web、Data、Job、Remoting、Cloudなどの開発シーンをサポート
-* 集合Handler+ContextとListener+Messageの2つのスキーマパターン
-* プラグイン式の拡張を強調し、拡張可能で切り替え可能、異なるアプリケーションシーンに対応
-* ビジネスプラグインのホットプラグ、ホットダイヤルを許可する
-* GraalVm Nativeパッケージのサポート
 
-
-## 生態構造図：
+## エコシステム：
 
 <img src="solon_schema.png" width="700" />
 
@@ -104,7 +103,7 @@ public class App{
 //Controller mode：(mvc or rest-api)
 @Controller
 public class HelloController{
-    //Socketメソッドタイプの修飾
+    //Socketメソッドタイプを限定する
     @Socket
     @Mapping("/mvc/hello")
     public String hello(String name){
@@ -154,7 +153,7 @@ public class HelloServiceImpl implements HelloService{
 * プロジェクトのシングルテスト：[__test](./__test/) 
 * プロジェクトの詳細機能の例：[solon_demo](https://gitee.com/noear/solon_demo) 、 [solon_api_demo](https://gitee.com/noear/solon_api_demo)  、 [solon_rpc_demo](https://gitee.com/noear/solon_rpc_demo) 、 [solon_socketd_demo](https://gitee.com/noear/solon_socketd_demo) 、 [solon_cloud_demo](https://gitee.com/noear/solon_cloud_demo) 、 [solon_auth_demo](https://gitee.com/noear/solon_auth_demo)
 
-## 特にJetBrainsのオープンソースプロジェクトへのサポートに感謝します：
+## 特にJetBrainsのオープンソースプロジェクトへのサポートに感謝します
 
 <a href="https://jb.gg/OpenSourceSupport">
   <img src="https://user-images.githubusercontent.com/8643542/160519107-199319dc-e1cf-4079-94b7-01b6b8d23aa6.png" align="left" height="100" width="100"  alt="JetBrains">
