@@ -1500,7 +1500,7 @@
             </dependency>
             <dependency>
                 <groupId>org.dromara.solon-plugins</groupId>
-                <artifactId>mapstruct-plus-solon-plugins</artifactId>
+                <artifactId>mapstruct-plus-solon-plugin</artifactId>
                 <version>${dromara-plugins.version}</version>
             </dependency>
         </dependencies>
