@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 /**
  * Aop 上下文（ 为全局对象；热插拨的插件，会产生独立的上下文）
- *
+ * <p>
  * 主要实现四个动作：
  * 1.bean 构建
  * 2.bean 注入（字段 或 参数）
@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  *
  * @author noear
  * @since 1.0
- * */
+ */
 public class AopContext extends BeanContainer {
 
     public AopContext() {
@@ -65,12 +65,12 @@ public class AopContext extends BeanContainer {
         return mw;
     }
 
-	/**
-	 * 遍历method (拿到的是method包装)
-	 */
-	public void methodForeach(Consumer<MethodWrap> action) {
-		methodCached.values().forEach(action);
-	}
+    /**
+     * 遍历method (拿到的是method包装)
+     */
+    public void methodForeach(Consumer<MethodWrap> action) {
+        methodCached.values().forEach(action);
+    }
 
     @Override
     public void clear() {
@@ -154,14 +154,14 @@ public class AopContext extends BeanContainer {
             //确定顺序位
             bw.indexSet(anno.index());
 
+            //尝试提取函数
+            beanExtract(bw);
+
             //添加bean形态处理
             beanShapeRegister(clz, bw, clz);
 
             //注册到容器
             beanRegister(bw, beanName, anno.typed());
-
-            //尝试提取函数
-            beanExtract(bw);
 
             //单例，进行事件通知
             if (bw.singleton()) {
@@ -210,7 +210,7 @@ public class AopContext extends BeanContainer {
     protected void beanInject(VarHolder varH, String name, boolean required, boolean autoRefreshed) {
         super.beanInject(varH, name, required, autoRefreshed);
 
-        if(varH.isDone()){
+        if (varH.isDone()) {
             return;
         }
 
@@ -221,7 +221,7 @@ public class AopContext extends BeanContainer {
                 if (type instanceof Class) {
                     varH.required(required);
                     lifecycle(-999999, () -> {
-                        if(varH.isDone()){
+                        if (varH.isDone()) {
                             return;
                         }
 
@@ -239,7 +239,7 @@ public class AopContext extends BeanContainer {
                 if (String.class == keyType && valType instanceof Class) {
                     varH.required(required);
                     lifecycle(-999999, () -> {
-                        if(varH.isDone()){
+                        if (varH.isDone()) {
                             return;
                         }
 
@@ -264,7 +264,8 @@ public class AopContext extends BeanContainer {
         if (Plugin.class.isAssignableFrom(clz)) {
             //如果是插件，则插入
             Solon.app().plug(bw.raw());
-            LogUtil.global().warn("'Plugin' will be deprecated as a component, please use 'LifecycleBean'");return;
+            LogUtil.global().warn("'Plugin' will be deprecated as a component, please use 'LifecycleBean'");
+            return;
         }
 
         //LifecycleBean（替代 Plugin，提供组件的生态周期控制）
@@ -302,7 +303,7 @@ public class AopContext extends BeanContainer {
         }
 
         //Render
-        if(Render.class.isAssignableFrom(clz)) {
+        if (Render.class.isAssignableFrom(clz)) {
             RenderManager.mapping(bw.name(), (Render) bw.raw());
         }
 
@@ -317,17 +318,17 @@ public class AopContext extends BeanContainer {
         }
 
         //ActionReturnHandler
-        if(ActionReturnHandler.class.isAssignableFrom(clz)){
+        if (ActionReturnHandler.class.isAssignableFrom(clz)) {
             Solon.app().chainManager().addReturnHandler(bw.raw());
         }
 
         //ActionExecuteHandler
-        if(ActionExecuteHandler.class.isAssignableFrom(clz)){
+        if (ActionExecuteHandler.class.isAssignableFrom(clz)) {
             Solon.app().chainManager().addExecuteHandler(bw.raw());
         }
 
         //Converter
-        if(Converter.class.isAssignableFrom(clz)){
+        if (Converter.class.isAssignableFrom(clz)) {
             Solon.app().converterManager().register(bw.raw());
         }
     }
@@ -357,19 +358,22 @@ public class AopContext extends BeanContainer {
         ClassWrap clzWrap = ClassWrap.get(bw.clz());
 
         for (Method m : clzWrap.getMethods()) {
-            for (Annotation a : m.getAnnotations()) {
+            List<Annotation> annotations = Arrays.asList(m.getAnnotations());
+            //排序保证代理对象在容器中一致性
+            annotations.sort(Order.ORDER_COMPARATOR);
+            for (Annotation a : annotations) {
                 BeanExtractor be = beanExtractors.get(a.annotationType());
-
-                if (be != null) {
-                    try {
-                        be.doExtract(bw, m, a);
-                    } catch (Throwable e) {
-                        e = Utils.throwableUnwrap(e);
-                        if (e instanceof RuntimeException) {
-                            throw (RuntimeException) e;
-                        } else {
-                            throw new RuntimeException(e);
-                        }
+                if (be == null) {
+                    continue;
+                }
+                try {
+                    be.doExtract(bw, m, a);
+                } catch (Throwable e) {
+                    e = Utils.throwableUnwrap(e);
+                    if (e instanceof RuntimeException) {
+                        throw (RuntimeException) e;
+                    } else {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -399,7 +403,7 @@ public class AopContext extends BeanContainer {
         }
 
         if (obj instanceof InitializingBean) {
-            InitializingBean initBean = (InitializingBean)obj;
+            InitializingBean initBean = (InitializingBean) obj;
 
             if (fwList.size() == 0) {
                 //不需要注入
@@ -423,7 +427,7 @@ public class AopContext extends BeanContainer {
         } else {
             if (fwList.size() == 0) {
 
-            }else {
+            } else {
                 //需要注入（可能）
                 VarGather gather = new VarGather(true, fwList.size(), null);
 
@@ -774,14 +778,14 @@ public class AopContext extends BeanContainer {
 
     /**
      * 添加生命周期 bean
-     * */
+     */
     public void lifecycle(LifecycleBean lifecycle) {
         lifecycle(0, lifecycle);
     }
 
     /**
      * 添加生命周期 bean
-     * */
+     */
     public void lifecycle(int index, LifecycleBean lifecycle) {
         lifecycleBeans.add(new RankEntity<>(lifecycle, index));
 
@@ -790,7 +794,6 @@ public class AopContext extends BeanContainer {
             RunUtil.runOrThrow(lifecycle::start);
         }
     }
-
 
 
     //已启动标志
@@ -820,7 +823,7 @@ public class AopContext extends BeanContainer {
             }
 
             //全部跑完后，检查注入情况
-            for(VarGather gather : gatherSet){
+            for (VarGather gather : gatherSet) {
                 gather.check();
             }
         } catch (Throwable e) {
