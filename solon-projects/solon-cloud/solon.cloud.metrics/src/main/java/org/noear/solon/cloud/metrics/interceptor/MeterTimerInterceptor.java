@@ -35,22 +35,19 @@ public class MeterTimerInterceptor extends BaseMeterInterceptor<MeterTimer, Time
     @Override
     protected Object metering(Invocation inv, MeterTimer anno) throws Throwable {
         //获取度量器
-        Timer meter = meterCached.get(anno);
-        if (meter == null) {
-            synchronized (anno) {
-                meter = meterCached.get(anno);
-                if (meter == null) {
-                    String meterName = getMeterName(inv, anno);
+        String meterName = getMeterName(inv, anno);
+        Timer meter;
 
-                    meter = Timer.builder(meterName)
-                            .tags(getMeterTags(inv, anno.tags()))
-                            .description(anno.description())
-                            .register(Metrics.globalRegistry);
-
-                    meterCached.put(anno, meter);
-                }
-            }
+        if (!meterCached.containsKey(meterName)) {
+            meter = Timer.builder(meterName)
+                    .description(anno.description())
+                    .tags(getMeterTags(inv, anno.tags()))
+                    .publishPercentiles(anno.percentiles())
+                    .register(Metrics.globalRegistry);
+            meterCached.put(meterName, meter);
         }
+
+        meter = meterCached.get(meterName);
 
         //计时
         long start = System.currentTimeMillis();
@@ -58,7 +55,7 @@ public class MeterTimerInterceptor extends BaseMeterInterceptor<MeterTimer, Time
             return inv.invoke();
         } finally {
             long span = System.currentTimeMillis() - start;
-            meter.record(span, TimeUnit.MILLISECONDS);
+            meter.record(span, TimeUnit.MICROSECONDS);
         }
     }
 }

@@ -36,8 +36,15 @@ public @interface MeterCounter {
      */
     String[] tags() default {};
 
+
+    /**
+     * 单位
+     */
+    String unit() default "";
+
+
     /**
      * 描述
-     * */
+     */
     String description() default "";
 }
