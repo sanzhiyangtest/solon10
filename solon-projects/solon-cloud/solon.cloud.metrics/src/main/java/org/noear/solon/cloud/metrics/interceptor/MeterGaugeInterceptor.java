@@ -41,6 +41,7 @@ public class MeterGaugeInterceptor extends BaseMeterInterceptor<MeterGauge, Numb
 
             Gauge.builder(meterName, number, Number::doubleValue)
                     .tags(getMeterTags(inv, anno.tags()))
+                    .baseUnit(anno.unit())
                     .description(anno.description())
                     .register(Metrics.globalRegistry);
         }

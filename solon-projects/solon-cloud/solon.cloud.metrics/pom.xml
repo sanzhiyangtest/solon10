@@ -31,6 +31,12 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
             <version>${micrometer.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>micrometer-core</artifactId>
+                    <groupId>io.micrometer</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
