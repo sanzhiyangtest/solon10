@@ -12,6 +12,7 @@ import org.noear.solon.core.Props;
  * @since 1.2
  */
 public class CloudProps {
+    public static final String SOLON_APP_NAME = "solon.app.name";
     public static final String PREFIX_config = "config.";
     public static final String PREFIX_discovery = "discovery.";
     public static final String PREFIX_event = "event.";
@@ -24,6 +25,9 @@ public class CloudProps {
     public static final String PREFIX_id = "id.";
     public static final String PREFIX_list = "list.";
     public static final String PREFIX_job = "job.";
+    public static final String SUFFIX_yaml = ".yaml";
+    public static final String SUFFIX_yml = ".yml";
+    public static final String SUFFIX_properties = ".properties";
 
     public static String LOG_DEFAULT_LOGGER;
 
@@ -293,7 +297,15 @@ public class CloudProps {
     }
 
     public String getConfigLoad() {
-        return appContext.cfg().get(CONFIG_LOAD);
+        String tmp = appContext.cfg().get(CONFIG_LOAD);
+        if (Utils.isEmpty(tmp)) {
+            StringBuilder strBuilder = new StringBuilder();
+            String appName = appContext.cfg().get(SOLON_APP_NAME);
+            return strBuilder.append(appName).append(",").append(appName).append(SUFFIX_yml).append(",")
+                    .append(appName).append(SUFFIX_yaml).append(",").append(appName).append(SUFFIX_properties).toString();
+        } else {
+            return tmp;
+        }
     }
 
     public String getConfigRefreshInterval(String def) {
