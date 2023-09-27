@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.zip.GZIPOutputStream;
 
 public class SmHttpContext extends WebContextBase {
     static final Logger log = LoggerFactory.getLogger(SmHttpContextHandler.class);
@@ -180,9 +181,17 @@ public class SmHttpContext extends WebContextBase {
         if (_paramsMap == null) {
             _paramsMap = new LinkedHashMap<>();
 
-            _request.getParameters().forEach((k, v) -> {
-                _paramsMap.put(k, Utils.asList(v));
-            });
+            try {
+                if (autoMultipart()) {
+                    loadMultipartFormData();
+                }
+
+                _request.getParameters().forEach((k, v) -> {
+                    _paramsMap.put(k, Utils.asList(v));
+                });
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         return _paramsMap;
@@ -335,6 +344,11 @@ public class SmHttpContext extends WebContextBase {
     }
 
     @Override
+    public String headerOfResponse(String name) {
+        return _response.getHeader(name);
+    }
+
+    @Override
     public void cookieSet(String key, String val, String domain, String path, int maxAge) {
         Cookie cookie = new Cookie(key, val);
 
@@ -433,7 +447,6 @@ public class SmHttpContext extends WebContextBase {
             }
         }
     }
-
 
     @Override
     protected void innerCommit() throws IOException {

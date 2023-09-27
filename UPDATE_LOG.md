@@ -9,7 +9,7 @@
 * 提醒1：之前没有使用弃用接口的，可以直接升级 <br>
 * 提醒2：有使用弃用接口的。建议先升级到 1.12.4；替换弃用代码后，再升级到 2.0.0
 
-### 2.5.7
+### 2.5.8
 * 新增 solon.boot.vertx 插件?
 * 新增 seata-solon-plugin 插件
 * 新增 graphql-solon-plugin 插件
@@ -17,6 +17,35 @@
 * 调整 使用更多的 slf4j 替换 LogUtil ???
 * 调整 solon.config.add 与 solon.config.load 合并，规范格式（同时支持内部与外部） ???
 * 调整 简化 SocketD ???
+
+### 2.5.7
+
+* 新增 hibernate-solon-plugin 插件
+* 增加 http server gzip 体整配置支持
+* 增加 Context::headerOfResponse 接口
+* 增加 solon.web.staticfiles 对 gzip 的配置支持
+* 增加 solon.boot.jdkhttp 对 gzip 的配置支持
+* 增加 solon.boot.smarthttp 对 gzip 的配置支持
+* 增加 solon.web.servlet 对 gzip 的配置支持
+* 增加 solon.web.servlet.jakarta 对 gzip 的配置支持
+* 调整 `@Import` 替代 `@PropertySource`、`@TestPropertySource`，后者标为弃用
+* 调整 `@Rollback` 替代 `@TestRollback`，后者标为弃用
+* 调整 SolonTestApp 默认关闭 http 服务；避免与已启动服务端口冲突
+* 调整 solon.cache.jedis 的两个序列化实现，转到 solon.data（做为公用）
+* 调整 solon.cache.redission RedissonCacheService 增加外部序列化接口支持
+* 调整 `@Bean` 函数，参数没带注解的算必须
+* 调整 paramsMap 增加 autoMultipart 处理
+* 修复 solon-maven-plugin 在 linux 下因为一些用户角色没有权限导致打包失败问题
+* 优化 `VarGather` 检查增加自动排序
+* 优化 Props::getMap 处理
+* 简化 Props::getProp 处理提升性能
+* wood 升为 1.2.2
+* mybatis-flex 升为 1.6.7
+* easy-trans 升为 1.3.0
+* sa-token 升为 1.36.0
+* fastjson2 升为 2.4.0
+* jetty 升为 9.4.52.v20230823
+* undertow 升为 2.2.26.Final
 
 ### 2.5.6
 * asm 升为 9.5 （for JDK21）

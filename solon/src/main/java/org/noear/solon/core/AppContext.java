@@ -15,7 +15,7 @@ import org.noear.solon.core.event.EventListener;
  * @author noear
  * @since 2.5
  * */
-public class AppContext extends AopContext{ //（继承，为兼容性过度）
+public class AppContext extends AopContext { //（继承，为兼容性过度）
     public AppContext(ClassLoader classLoader, Props props) {
         super(classLoader, props);
     }
@@ -36,5 +36,4 @@ public class AppContext extends AopContext{ //（继承，为兼容性过度）
         EventBus.subscribe(type, index, handler);
         return this;
     }
-
 }

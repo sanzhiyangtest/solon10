@@ -7,7 +7,6 @@ import org.noear.solon.boot.web.HeaderUtils;
 import org.noear.solon.boot.web.WebContextBase;
 import org.noear.solon.boot.web.Constants;
 import org.noear.solon.boot.web.RedirectUtils;
-import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.ContextAsyncListener;
 import org.noear.solon.core.handle.UploadedFile;
 import org.noear.solon.core.NvMap;
@@ -23,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 
 public class JdkHttpContext extends WebContextBase {
     private HttpExchange _exchange;
@@ -197,15 +197,24 @@ public class JdkHttpContext extends WebContextBase {
         if (_paramsMap == null) {
             _paramsMap = new LinkedHashMap<>();
 
-            _parameters.forEach((k, v) -> {
-                if (v instanceof List) {
-                    _paramsMap.put(k, (List<String>) v);
-                } else {
-                    List<String> list = new ArrayList<>();
-                    list.add((String) v);
-                    _paramsMap.put(k, list);
+            try {
+                if (autoMultipart()) {
+                    loadMultipartFormData();
                 }
-            });
+
+                _parameters.forEach((k, v) -> {
+                    if (v instanceof List) {
+                        _paramsMap.put(k, (List<String>) v);
+                    } else {
+                        List<String> list = new ArrayList<>();
+                        list.add((String) v);
+                        _paramsMap.put(k, list);
+                    }
+                });
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+
         }
 
         return _paramsMap;
@@ -358,6 +367,12 @@ public class JdkHttpContext extends WebContextBase {
         _exchange.getResponseHeaders().add(key, val);
     }
 
+
+    @Override
+    public String headerOfResponse(String name) {
+        return _exchange.getResponseHeaders().getFirst(name);
+    }
+
     @Override
     public void cookieSet(String key, String val, String domain, String path, int maxAge) {
         StringBuilder sb = new StringBuilder();
@@ -459,6 +474,7 @@ public class JdkHttpContext extends WebContextBase {
             }
         }
     }
+
 
     @Override
     protected void innerCommit() throws IOException {

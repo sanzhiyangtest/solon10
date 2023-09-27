@@ -4,11 +4,10 @@ import org.noear.solon.Utils;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Handler;
 import org.noear.solon.core.handle.MethodType;
-import org.noear.solon.core.util.RangeUtil;
+import org.noear.solon.boot.web.OutputUtils;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Date;
 
 /**
@@ -16,14 +15,12 @@ import java.util.Date;
  *
  * @author noear
  * @since 1.0
- * */
+ */
 public class StaticResourceHandler implements Handler {
     private static final String CACHE_CONTROL = "Cache-Control";
     private static final String LAST_MODIFIED = "Last-Modified";
+    private static final Date modified_time = new Date();
 
-    public StaticResourceHandler() {
-
-    }
 
     @Override
     public void handle(Context ctx) throws Exception {
@@ -79,33 +76,42 @@ public class StaticResourceHandler implements Handler {
             }
 
 
-            if (StaticConfig.getCacheMaxAge() < 0) {
-                //说明不需要 uri 缓存; 或者是调试模式
-                URLConnection connection = uri.openConnection();
-                connection.setUseCaches(false);
-
-                try (InputStream stream = connection.getInputStream()) {
-                    ctx.contentType(conentType);
-                    RangeUtil.global().outputStream(ctx, stream, stream.available());
-
-                    //ctx.contentLength(stream.available());
-                    //ctx.status(200);
-                    //ctx.output(stream);
+            //一般情况下，文本类型的文件gzip才有价值,图片,excel这类文件gzip压缩率很低
+            if (conentType.startsWith("text/")
+                    || "application/json".equals(conentType)
+                    || "application/javascript".equals(conentType)
+            ) {
+                //判断客户端是否支持gzip
+                String acceptEncoding=ctx.headerOrDefault("Accept-Encoding", "");
+                if (acceptEncoding.contains("br")) {
+                    URL zipedFile = StaticMappings.find(path + ".br");
+                    if (zipedFile != null) {
+                        try (InputStream stream = zipedFile.openStream()) {
+                            ctx.contentType(conentType);
+                            ctx.headerSet("Vary", "Accept-Encoding");
+                            ctx.headerSet("Content-Encoding", "br");
+                            OutputUtils.global().outputStreamAsRange(ctx, stream, stream.available());
+                        }
+                        return;
+                    }
                 }
-            } else {
-                try (InputStream stream = uri.openStream()) {
-                    ctx.contentType(conentType);
-                    RangeUtil.global().outputStream(ctx, stream, stream.available());
-
-                    //ctx.contentLength(stream.available());
-                    //ctx.status(200);
-                    //ctx.output(stream);
+                if (acceptEncoding.contains("gzip")) {
+                    URL zipedFile = StaticMappings.find(path + ".gz");
+                    if (zipedFile != null) {
+                        try (InputStream stream = zipedFile.openStream()) {
+                            ctx.contentType(conentType);
+                            ctx.headerSet("Vary", "Accept-Encoding");
+                            ctx.headerSet("Content-Encoding", "gzip");
+                            OutputUtils.global().outputStreamAsRange(ctx, stream, stream.available());
+                        }
+                        return;
+                    }
                 }
             }
+
+            OutputUtils.global().outputFile(ctx, uri, conentType, StaticConfig.getCacheMaxAge() >= 0);
         }
     }
-
-    private static final Date modified_time = new Date();
 
 
     /**

@@ -4,8 +4,10 @@ import org.noear.solon.Solon;
 import org.noear.solon.Utils;
 import org.noear.solon.boot.ServerProps;
 import org.noear.solon.core.handle.Context;
+import org.noear.solon.core.handle.DownloadedFile;
 import org.noear.solon.lang.NonNull;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -40,10 +42,27 @@ public abstract class WebContextBase extends Context {
         return contentCharset;
     }
 
+    /**
+     * 输出为文件
+     */
+    @Override
+    public void outputAsFile(DownloadedFile file) throws IOException {
+        OutputUtils.global().outputFile(this, file, file.isAttachment());
+    }
+
+    /**
+     * 输出为文件
+     */
+    @Override
+    public void outputAsFile(File file) throws IOException {
+        OutputUtils.global().outputFile(this, file, true);
+    }
+
 
     /**
      * 获取 sessionId
      */
+    @Override
     public final String sessionId() {
         return sessionState().sessionId();
     }
@@ -53,6 +72,7 @@ public abstract class WebContextBase extends Context {
      *
      * @param name 状态名
      */
+    @Override
     public final <T> T session(String name, Class<T> clz) {
         return sessionState().sessionGet(name, clz);
     }
@@ -62,6 +82,7 @@ public abstract class WebContextBase extends Context {
      *
      * @param name 状态名
      */
+    @Override
     public final <T> T sessionOrDefault(String name, @NonNull T def) {
         if (def == null) {
             return (T) session(name, Object.class);
@@ -81,6 +102,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final int sessionAsInt(String name) {
         return sessionAsInt(name, 0);
     }
@@ -91,6 +113,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final int sessionAsInt(String name, int def) {
         Object tmp = session(name, Object.class);
         if (tmp == null) {
@@ -115,6 +138,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final long sessionAsLong(String name) {
         return sessionAsLong(name, 0L);
     }
@@ -125,6 +149,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final long sessionAsLong(String name, long def) {
         Object tmp = session(name, Object.class);
         if (tmp == null) {
@@ -149,6 +174,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final double sessionAsDouble(String name) {
         return sessionAsDouble(name, 0.0D);
     }
@@ -159,6 +185,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @since 1.6
      */
+    @Override
     public final double sessionAsDouble(String name, double def) {
         Object tmp = session(name, Object.class);
         if (tmp == null) {
@@ -183,6 +210,7 @@ public abstract class WebContextBase extends Context {
      * @param name 状态名
      * @param val  值
      */
+    @Override
     public final void sessionSet(String name, Object val) {
         sessionState().sessionSet(name, val);
     }
@@ -192,6 +220,7 @@ public abstract class WebContextBase extends Context {
      *
      * @param name 状态名
      */
+    @Override
     public final void sessionRemove(String name) {
         sessionState().sessionRemove(name);
     }
@@ -199,9 +228,11 @@ public abstract class WebContextBase extends Context {
     /**
      * 清空 session 状态
      */
+    @Override
     public final void sessionClear() {
         sessionState().sessionClear();
     }
+
 
     //一些特殊的boot才有效
     protected void innerCommit() throws IOException {

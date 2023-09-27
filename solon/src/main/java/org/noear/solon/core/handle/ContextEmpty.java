@@ -4,6 +4,7 @@ import org.noear.solon.core.NvMap;
 import org.noear.solon.core.util.IgnoreCaseMap;
 import org.noear.solon.lang.NonNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -252,6 +253,16 @@ public class ContextEmpty extends Context {
     }
 
     @Override
+    public void outputAsFile(DownloadedFile file) throws IOException {
+
+    }
+
+    @Override
+    public void outputAsFile(File file) throws IOException {
+
+    }
+
+    @Override
     public void headerSet(String key, String val) {
         headerMap().put(key,val);
     }
@@ -259,6 +270,11 @@ public class ContextEmpty extends Context {
     @Override
     public void headerAdd(String key, String val) {
         headerMap().put(key,val);
+    }
+
+    @Override
+    public String headerOfResponse(String name) {
+        return headerMap().get(name);
     }
 
     @Override

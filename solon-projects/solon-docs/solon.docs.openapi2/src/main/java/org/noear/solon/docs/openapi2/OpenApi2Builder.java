@@ -35,7 +35,6 @@ import org.noear.solon.docs.openapi2.wrap.ApiImplicitParamImpl;
 
 import java.lang.reflect.*;
 import java.text.Collator;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -196,7 +195,7 @@ public class OpenApi2Builder {
         Class<?> controller = action.controller().clz();
 
         boolean matched = docket.apis().stream().anyMatch(res -> res.test(action));
-        if (matched == false) {
+        if (!matched) {
             return;
         }
 
@@ -307,7 +306,12 @@ public class OpenApi2Builder {
                 if (operationMethod.equals(ApiEnum.METHOD_GET)) {
                     operation.consumes(ApiEnum.CONSUMES_URLENCODED); //如果是 get ，则没有 content-type
                 } else {
-                    operation.consumes(ApiEnum.CONSUMES_URLENCODED);
+                    //operation.consumes(ApiEnum.CONSUMES_URLENCODED);
+                    if (operation.getParameters().stream().anyMatch(parameter -> parameter instanceof BodyParameter)){
+                        operation.consumes(ApiEnum.CONSUMES_JSON);
+                    }else {
+                        operation.consumes(ApiEnum.CONSUMES_URLENCODED);
+                    }
                 }
             } else {
                 operation.consumes(apiAction.consumes());
@@ -472,6 +476,40 @@ public class OpenApi2Builder {
             paramList.add(parameter);
         }
 
+        return mergeBodyParamList(actionHolder,paramList);
+    }
+
+    private List<Parameter> mergeBodyParamList(ActionHolder actionHolder,List<Parameter> paramList){
+        if (actionHolder.action().consumes().equals("application/json") || paramList.stream().map(Parameter::getIn).anyMatch(in -> in.equals(ApiEnum.PARAM_TYPE_BODY))) {
+            BodyParameter finalBodyParameter = new BodyParameter();
+            finalBodyParameter.setIn("body");
+            finalBodyParameter.name("data");
+            ModelImpl model = new ModelImpl();
+            model.setDescription("请求体");
+            model.setName("请求体");
+            for (Parameter parameter : paramList) {
+                if (parameter instanceof BodyParameter) {
+                    BodyParameter bodyParameter = ((BodyParameter) parameter);
+                    Model schema = bodyParameter.getSchema();
+                    if (schema instanceof RefModel){
+                        RefModel refModel = (RefModel) schema;
+                        model.setProperties(this.swagger.getDefinitions().get(refModel.getSimpleRef()).getProperties());
+                    }
+                }else if (parameter instanceof QueryParameter){
+                    QueryParameter queryParameter = ((QueryParameter)parameter);
+                    ObjectProperty property = new ObjectProperty();
+                    property.setType(queryParameter.getType());
+                    property.setDescription(queryParameter.getDescription());
+                    model.setProperties(Collections.singletonMap(queryParameter.getName(),property));
+                }
+            }
+            //String key = "Map[" + actionHolder.action().fullName() + "]";
+            // 避免其他平台数据导入错误
+            String key = "Map[" + actionHolder.action().fullName().replace("/","_") + "]";
+            this.swagger.addDefinition(key,model);
+            finalBodyParameter.setSchema(new RefModel(key));
+            return Collections.singletonList(finalBodyParameter);
+        }
         return paramList;
     }
 
@@ -671,6 +709,11 @@ public class OpenApi2Builder {
 
             ApiModelProperty apiField = field.getAnnotation(ApiModelProperty.class);
 
+            // 隐藏的跳过
+            if (apiField != null && apiField.hidden()){
+                continue;
+            }
+
             Class<?> typeClazz = field.getType();
             Type typeGenericType = field.getGenericType();
             if (typeGenericType instanceof TypeVariable) {
@@ -702,7 +745,8 @@ public class OpenApi2Builder {
                     if (apiField != null) {
                         fieldPr.setDescription(apiField.value());
                         fieldPr.setRequired(apiField.required());
-                        fieldPr.setExample(apiField.example());
+                        // 如果是泛型参数的类型 加上 示例，在knife4j下将无法正确解析，所以将其注释
+                        // fieldPr.setExample(apiField.example());
                     }
 
 

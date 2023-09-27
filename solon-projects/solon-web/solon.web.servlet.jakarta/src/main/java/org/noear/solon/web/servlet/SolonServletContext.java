@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Servlet，适配为 Context
@@ -150,7 +151,7 @@ public class SolonServletContext extends WebContextBase {
             _paramMap = new NvMap();
 
             try {
-                if(autoMultipart()) {
+                if (autoMultipart()) {
                     loadMultipartFormData();
                 }
 
@@ -161,10 +162,8 @@ public class SolonServletContext extends WebContextBase {
                     String value = _request.getParameter(name);
                     _paramMap.put(name, value);
                 }
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+            } catch (IOException | ServletException e) {
+                throw new IllegalStateException(e);
             }
         }
 
@@ -178,9 +177,17 @@ public class SolonServletContext extends WebContextBase {
         if (_paramsMap == null) {
             _paramsMap = new LinkedHashMap<>();
 
-            _request.getParameterMap().forEach((k, v) -> {
-                _paramsMap.put(k, Utils.asList(v));
-            });
+            try {
+                if (autoMultipart()) {
+                    loadMultipartFormData();
+                }
+
+                _request.getParameterMap().forEach((k, v) -> {
+                    _paramsMap.put(k, Utils.asList(v));
+                });
+            } catch (IOException | ServletException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         return _paramsMap;
@@ -314,6 +321,13 @@ public class SolonServletContext extends WebContextBase {
         _response.addHeader(key, val);
     }
 
+
+    @Override
+    public String headerOfResponse(String name) {
+        return _response.getHeader(name);
+    }
+
+
     @Override
     public void cookieSet(String key, String val, String domain, String path, int maxAge) {
         Cookie c = new Cookie(key, val);
@@ -416,3 +430,4 @@ public class SolonServletContext extends WebContextBase {
         }
     }
 }
+

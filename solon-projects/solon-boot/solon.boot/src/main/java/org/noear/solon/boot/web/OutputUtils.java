@@ -1,27 +1,33 @@
-package org.noear.solon.core.util;
+package org.noear.solon.boot.web;
 
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
+import org.noear.solon.boot.prop.GzipProps;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.DownloadedFile;
+import org.noear.solon.core.util.IoUtil;
+import org.noear.solon.core.util.LogUtil;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.zip.GZIPOutputStream;
 
 /**
- * 分片输出工具类
+ * 文件输出工具类
  *
  * @author noear
  * @since 2.4
  */
-public class RangeUtil {
-    private static RangeUtil global = new RangeUtil();
+public class OutputUtils {
+    private static OutputUtils global = new OutputUtils();
 
-    public static RangeUtil global() {
+    public static OutputUtils global() {
         return global;
     }
 
-    public static void globalSet(RangeUtil instance) {
+    public static void globalSet(OutputUtils instance) {
         if (instance != null) {
             global = instance;
         }
@@ -31,7 +37,7 @@ public class RangeUtil {
 
 
     /**
-     * 输出文件
+     * 输出文件（主要是给动态输出用）
      */
     public void outputFile(Context ctx, DownloadedFile file, boolean asAttachment) throws IOException {
         if (Utils.isNotEmpty(file.getName())) {
@@ -49,12 +55,12 @@ public class RangeUtil {
         }
 
         try (InputStream ins = file.getContent()) {
-            RangeUtil.global().outputStream(ctx, ins, file.getContentSize());
+            OutputUtils.global().outputStream(ctx, ins, file.getContentSize(), file.getContentType());
         }
     }
 
     /**
-     * 输出文件
+     * 输出文件（主要是给动态输出用）
      */
     public void outputFile(Context ctx, File file, boolean asAttachment) throws IOException {
         //输出文件名
@@ -74,7 +80,32 @@ public class RangeUtil {
         }
 
         try (InputStream ins = new FileInputStream(file)) {
-            RangeUtil.global().outputStream(ctx, ins, file.length());
+            OutputUtils.global().outputStream(ctx, ins, file.length(), contentType);
+        }
+    }
+
+    /**
+     * 输出文件（主要是给静态文件用）
+     */
+    public void outputFile(Context ctx, URL file , String conentType,boolean useCaches) throws IOException {
+        //
+        // todo: 有 gzip 需求时，可以再增加 demo.js 由 demo.js.gz 输出的尝试（如果有）
+        //
+        if (useCaches) {
+            //使用 uri 缓存（jdk 内部有缓存）
+            try (InputStream stream = file.openStream()) {
+                ctx.contentType(conentType);
+                outputStream(ctx, stream, stream.available(), conentType);
+            }
+        } else {
+            //说明不需要 uri 缓存; 或者是调试模式
+            URLConnection connection = file.openConnection();
+            connection.setUseCaches(false);
+
+            try (InputStream stream = connection.getInputStream()) {
+                ctx.contentType(conentType);
+                outputStream(ctx, stream, stream.available(), conentType);
+            }
         }
     }
 
@@ -82,7 +113,31 @@ public class RangeUtil {
     /**
      * 输出流
      */
-    public void outputStream(Context ctx, InputStream stream, long streamSize) throws IOException {
+    public void outputStream(Context ctx, InputStream stream, long streamSize, String mime) throws IOException {
+        if (GzipProps.requiredGzip(ctx, mime, streamSize)) {
+            outputStreamAsGzip(ctx, stream);
+        } else {
+            outputStreamAsRange(ctx, stream, streamSize);
+        }
+    }
+
+    /**
+     * 输出流，做为 gzip 输出
+     */
+    public void outputStreamAsGzip(Context ctx, InputStream stream) throws IOException {
+        //支持 gzip
+        ctx.status(200);
+        ctx.headerSet("Vary", "Accept-Encoding");
+        ctx.headerSet("Content-Encoding", "gzip");
+        GZIPOutputStream gzipOut = new GZIPOutputStream(ctx.outputStream(), 4096, true);
+        IoUtil.transferTo(stream, gzipOut);
+        gzipOut.flush();
+    }
+
+    /**
+     * 输出流，做为 range 形式输出（如果支持）
+     */
+    public void outputStreamAsRange(Context ctx, InputStream stream, long streamSize) throws IOException {
         if (streamSize > 0) {
             //支持分版
             ctx.headerSet("Accept-Ranges", "bytes");

@@ -876,16 +876,12 @@ public abstract class Context {
     /**
      * 输出为文件
      */
-    public void outputAsFile(DownloadedFile file) throws IOException {
-        RangeUtil.global().outputFile(this, file, file.isAttachment());
-    }
+    public abstract void outputAsFile(DownloadedFile file) throws IOException;
 
     /**
      * 输出为文件
      */
-    public void outputAsFile(File file) throws IOException {
-        RangeUtil.global().outputFile(this, file, true);
-    }
+    public abstract void outputAsFile(File file) throws IOException;
 
     /**
      * 设置 header
@@ -896,6 +892,11 @@ public abstract class Context {
      * 添加 header
      */
     public abstract void headerAdd(String name, String val);
+
+    /**
+     * 获取响应 header
+     * */
+    public abstract String headerOfResponse(String name);
 
     /**
      * 设置 cookie

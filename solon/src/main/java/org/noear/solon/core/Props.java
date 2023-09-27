@@ -2,6 +2,7 @@ package org.noear.solon.core;
 
 import org.noear.solon.SolonProps;
 import org.noear.solon.Utils;
+import org.noear.solon.annotation.Import;
 import org.noear.solon.annotation.PropertySource;
 import org.noear.solon.core.util.PropUtil;
 import org.noear.solon.core.util.ResourceUtil;
@@ -197,15 +198,8 @@ public class Props extends Properties {
             doFind(keyStarts, (key, val) -> { //相对旧版，减少一次 forEach
                 if (key.startsWith(".")) {
                     key = key.substring(1); //去掉 .
-                    prop.put(key, val);
-
-                    if (key.contains("-")) {//为带 - 的 key ，增加副本
-                        String camelKey = buildCamelKey(key);
-                        prop.put(camelKey, val);
-                    }
-                } else if (key.startsWith("[")) {
-                    prop.put(key, val);
                 }
+                prop.put(key, val);
             });
 
             return prop;
@@ -268,7 +262,12 @@ public class Props extends Properties {
      */
     public Map<String,String> getMap(String keyStarts) {
         Map<String, String> map = new LinkedHashMap<>();
-        doFind(keyStarts, map::put);
+        doFind(keyStarts, (key, val) -> { //相对旧版，减少一次 forEach
+            if (key.startsWith(".")) {
+                key = key.substring(1); //去掉 .
+            }
+            map.put(key, val);
+        });
         return map;
     }
 
@@ -367,12 +366,27 @@ public class Props extends Properties {
         loadAdd(ResourceUtil.getResource(classLoader, name));
     }
 
-    public void loadAdd(PropertySource propertySource) {
-        if (propertySource == null) {
+    public void loadAdd(Import anno) {
+        if (anno == null) {
             return;
         }
 
-        for (String uri : propertySource.value()) {
+        for (String uri : anno.propertySource()) {
+            uri = getByParse(uri);
+            loadAdd(ResourceUtil.findResource(classLoader, uri));
+        }
+    }
+
+    /**
+     * @deprecated 2.5
+     * */
+    @Deprecated
+    public void loadAdd(PropertySource anno) {
+        if (anno == null) {
+            return;
+        }
+
+        for (String uri : anno.value()) {
             uri = getByParse(uri);
             loadAdd(ResourceUtil.findResource(classLoader, uri));
         }

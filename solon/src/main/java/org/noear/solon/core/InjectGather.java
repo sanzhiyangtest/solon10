@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * 变量收集器，收集完成后会进行回调（主要为 Configuration 构建 method bean 时服务）
+ * 注入收集器，收集完成后会进行回调（主要为 Configuration 构建 method bean 时服务）
  *
  * @see AppContext#tryBuildBean
  * @author noear
  * @since 1.0
  * */
-public class VarGather implements Runnable {
+public class InjectGather implements Runnable {
     //变量
     private List<VarHolder> vars;
     //变量数量
@@ -22,13 +22,31 @@ public class VarGather implements Runnable {
     private boolean done;
     //完成时
     private Consumer<Object[]> onDone;
+    //必须运行
     private boolean requireRun;
+    //输出类型
+    private Class<?> outType;
+    //执行顺序位
+    public int index;
 
-    public VarGather(boolean requireRun, int varSize, Consumer<Object[]> onDone) {
+    public InjectGather(Class<?> outType, boolean requireRun, int varSize, Consumer<Object[]> onDone) {
         this.requireRun = requireRun;
         this.onDone = onDone;
         this.varSize = varSize;
         this.vars = new ArrayList<>(varSize);
+        this.outType = outType;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public Class<?> getOutType() {
+        return outType;
+    }
+
+    public List<VarHolder> getVars() {
+        return vars;
     }
 
     public void add(VarHolder p) {
@@ -36,8 +54,15 @@ public class VarGather implements Runnable {
         vars.add(p);
     }
 
+    /**
+     * 运行（变量收集完成后，回调运行）
+     */
     @Override
-    public void run() {
+    public synchronized void run() {
+        if (done) {
+            return;
+        }
+
         for (VarHolder p1 : vars) {
             if (p1.isDone() == false) {
                 return;
@@ -49,7 +74,7 @@ public class VarGather implements Runnable {
         }
 
         done = true;
-        if(onDone != null) {
+        if (onDone != null) {
             List<Object> args = new ArrayList<>(vars.size());
             for (VarHolder p1 : vars) {
                 args.add(p1.getValue());
@@ -62,7 +87,7 @@ public class VarGather implements Runnable {
     /**
      * 检测
      */
-    public void check() throws Exception {
+    public synchronized void check() throws Exception {
         if (done) {
             return;
         }
