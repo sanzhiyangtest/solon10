@@ -708,7 +708,10 @@ public abstract class AopContext extends BeanContainer {
     private final Set<Class<?>> beanCreatedCached = new HashSet<>();
 
     private void tryCreateBean0(Class<?> clz, BiConsumerEx<BeanBuilder, Annotation> consumer) {
-        Annotation[] annS = clz.getDeclaredAnnotations();
+        Annotation[] annS = clz.getAnnotations();
+        if (annS.length == 0 && clz.isInterface()) {// 当注入对象是接口时，获取所有注解，针对自定义 BeanBuilder https://gitee.com/noear/solon/issues/I89EGF
+            annS = ClassUtil.getInterfaceAllAnnotations(clz);
+        }
 
         if (annS.length > 0) {
             //去重处理
