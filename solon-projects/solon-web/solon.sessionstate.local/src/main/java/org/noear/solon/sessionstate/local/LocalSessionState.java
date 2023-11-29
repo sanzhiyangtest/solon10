@@ -15,7 +15,10 @@ public class LocalSessionState extends SessionStateBase {
     private static ScheduledStore _store;
 
     static {
-        _store = new ScheduledStore(_expiry);
+        if ("file".equals(System.getProperty("server.session.storeType")))
+            _store = new ScheduledFileStore(_expiry);
+        else
+            _store = new ScheduledStore(_expiry);
     }
 
     protected LocalSessionState(Context ctx) {
