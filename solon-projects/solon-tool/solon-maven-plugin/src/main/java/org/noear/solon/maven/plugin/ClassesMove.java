@@ -23,8 +23,7 @@ public class ClassesMove {
      * @return
      */
     public static boolean isNotChangeJar(File file) {
-        try {
-            JarFile targetJarfile = new JarFile(file);
+        try(JarFile targetJarfile = new JarFile(file)) {
             Enumeration<JarEntry> entries = targetJarfile.entries();
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = entries.nextElement();
