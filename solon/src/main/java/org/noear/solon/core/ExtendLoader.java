@@ -2,7 +2,6 @@ package org.noear.solon.core;
 
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
-import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.util.LogUtil;
 
 import java.io.File;
@@ -96,7 +95,7 @@ public class ExtendLoader {
 
             return true;
         } catch (Throwable e) {
-            EventBus.publishTry(e);
+            LogUtil.global().warn("ExtendLoader loadJar failed!", e);
             return false;
         }
     }
@@ -106,7 +105,7 @@ public class ExtendLoader {
             AppClassLoader.global().addJar(file);
             return true;
         } catch (Throwable e) {
-            EventBus.publishTry(e);
+            LogUtil.global().warn("ExtendLoader loadJar failed!", e);
             return false;
         }
     }
@@ -119,7 +118,7 @@ public class ExtendLoader {
             AppClassLoader.global().removeJar(file);
             return true;
         } catch (Throwable e) {
-            EventBus.publishTry(e);
+            LogUtil.global().warn("ExtendLoader unloadJar failed!", e);
             return false;
         }
     }
@@ -194,7 +193,7 @@ public class ExtendLoader {
                     return;
                 }
             } catch (Throwable e) {
-                EventBus.publishTry(e);
+                LogUtil.global().warn("ExtendLoader loadFile failed!", e);
             }
         }
     }

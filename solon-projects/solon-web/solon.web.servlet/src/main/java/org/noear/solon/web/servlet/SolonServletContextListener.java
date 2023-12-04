@@ -38,7 +38,7 @@ public class SolonServletContextListener implements ServletContextListener {
             //设定 contextPath
             String contextPath = sce.getServletContext().getContextPath();
             if (contextPath.length() > 1) {
-                Solon.app().filter(-99, new ContextPathFilter(contextPath));
+                Solon.app().filterIfAbsent(-99, new ContextPathFilter(false));
             }
         });
 
@@ -54,11 +54,15 @@ public class SolonServletContextListener implements ServletContextListener {
 
     /**
      * 调用主函数（支持主类配置）
-     * */
+     */
     private void invokeMain(ServletContext sc, String[] strArgs) throws RuntimeException {
         Class<?> mainClass = this.getClass();
-        String mainClassStr = sc.getInitParameter("solonStartClass");
-        if(Utils.isNotEmpty(mainClassStr)) {
+        String mainClassStr = sc.getInitParameter("solonMainClass");//v2.5
+        if (Utils.isEmpty(mainClassStr)) {
+            mainClassStr = sc.getInitParameter("solonStartClass");//@deprecated v2.5
+        }
+
+        if (Utils.isNotEmpty(mainClassStr)) {
             mainClass = ClassUtil.loadClass(mainClassStr);
 
             if (mainClass == null) {

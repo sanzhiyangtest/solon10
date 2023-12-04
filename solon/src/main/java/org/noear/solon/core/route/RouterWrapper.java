@@ -4,8 +4,6 @@ import org.noear.solon.core.AppContext;
 import org.noear.solon.core.BeanWrap;
 import org.noear.solon.core.ChainManager;
 import org.noear.solon.core.handle.*;
-import org.noear.solon.core.message.Listener;
-import org.noear.solon.core.message.ListenerPipeline;
 
 /**
  * 路由包装器（更简单的使用路由）
@@ -74,6 +72,17 @@ public abstract class RouterWrapper implements HandlerSlots {
     }
 
     /**
+     * 添加过滤器（按先进后出策略执行）,如果有相同类的则不加
+     *
+     * @param index  顺序位
+     * @param filter 过滤器
+     * @since 2.6
+     */
+    public void filterIfAbsent(int index, Filter filter) {
+        _chainManager.addFilterIfAbsent(filter, index);
+    }
+
+    /**
      * 添加路由拦截器（按先进后出策略执行）
      *
      * @param interceptor 路由拦截器
@@ -91,6 +100,16 @@ public abstract class RouterWrapper implements HandlerSlots {
      */
     public void routerInterceptor(int index, RouterInterceptor interceptor) {
         _chainManager.addInterceptor(interceptor, index);
+    }
+
+    /**
+     * 添加路由拦截器（按先进后出策略执行）,如果有相同类的则不加
+     *
+     * @param index       顺序位
+     * @param interceptor 路由拦截器
+     */
+    public void routerInterceptorIfAbsent(int index, RouterInterceptor interceptor) {
+        _chainManager.addInterceptorIfAbsent(interceptor, index);
     }
 
 
@@ -268,61 +287,11 @@ public abstract class RouterWrapper implements HandlerSlots {
         add(path, MethodType.DELETE, handler);
     }
 
-    /**
-     * 添加web socket方法的监听
-     */
-    public void ws(String path, Handler handler) {
-        add(path, MethodType.WEBSOCKET, handler);
-    }
-
-    /**
-     * 添加web socket方法的监听
-     */
-    public void ws(String path, Listener listener) {
-        _router.add(path, MethodType.WEBSOCKET, listener);
-    }
 
     /**
      * 添加socket方法的监听
      */
-    public void socket(String path, Handler handler) {
+    public void socketd(String path, Handler handler) {
         add(path, MethodType.SOCKET, handler);
-    }
-
-    /**
-     * 添加socket方法的监听
-     */
-    public void socket(String path, Listener listener) {
-        _router.add(path, MethodType.SOCKET, listener);
-    }
-
-    /**
-     * 添加监听
-     */
-    public void listen(String path, Listener listener) {
-        _router.add(path, MethodType.ALL, listener);
-    }
-
-    /**
-     * 添加监听到之前的位置
-     */
-    public void listenBefore(Listener listener) {
-        _listenerPipeline.prev(listener);
-    }
-
-    /**
-     * 添加监听到之后的位置
-     */
-    public void listenAfter(Listener listener) {
-        _listenerPipeline.next(listener);
-    }
-
-    private final ListenerPipeline _listenerPipeline = new ListenerPipeline();
-
-    /**
-     * 监听器入口
-     */
-    public Listener listener() {
-        return _listenerPipeline;
     }
 }

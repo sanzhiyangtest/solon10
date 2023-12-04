@@ -1,7 +1,7 @@
 <h1 align="center" style="text-align:center;">
 <img src="solon_icon.png" width="128" />
 <br />
-Solon v2.5.7-SNAPSHOT
+Solon v2.6.2-SNAPSHOT
 </h1>
 <p align="center">
 	<strong>Новая структура разработки приложений Java, меньше, быстрее и проще!</strong>
@@ -11,10 +11,10 @@ Solon v2.5.7-SNAPSHOT
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://central.sonatype.com/search?q=org.noear%2520solon-parent">
+    <a target="_blank" href="https://central.sonatype.com/search?q=org.noear%3Asolon-parent">
         <img src="https://img.shields.io/maven-central/v/org.noear/solon.svg?label=Maven%20Central" alt="Maven" />
     </a>
-    <a target="_blank" href="https://www.apache.org/licenses/LICENSE-2.0.txt">
+    <a target="_blank" href="LICENSE">
 		<img src="https://img.shields.io/:License-Apache2-blue.svg" alt="Apache 2" />
 	</a>
     <a target="_blank" href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
@@ -26,8 +26,8 @@ Solon v2.5.7-SNAPSHOT
     <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html">
 		<img src="https://img.shields.io/badge/JDK-17-green.svg" alt="jdk-17" />
 	</a>
-    <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk20-archive-downloads.html">
-		<img src="https://img.shields.io/badge/JDK-20-green.svg" alt="jdk-20" />
+    <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html">
+		<img src="https://img.shields.io/badge/JDK-21-green.svg" alt="jdk-21" />
 	</a>
     <br />
     <a target="_blank" href='https://gitee.com/noear/solon/stargazers'>
@@ -44,7 +44,7 @@ Solon v2.5.7-SNAPSHOT
 	<img src="https://img.shields.io/badge/QQ交流群-22200020-orange"/></a>
 </p>
 
-##### язык： Русский | [中文](README.md)  | [English](README_EN.md) | [日本語](README_JP.md)
+##### язык： Русский | [中文](README_CN.md)  | [English](README_EN.md) | [日本語](README_JP.md)
 
 <hr />
 
@@ -71,81 +71,13 @@ Solon v2.5.7-SNAPSHOT
 
 ## Экологическая архитектура：
 
+* solon
+
 <img src="solon_schema.png" width="700" />
 
-## Привет, мир.：
+* solon cloud
 
-```xml
-<parent>
-    <groupId>org.noear</groupId>
-    <artifactId>solon-parent</artifactId>
-    <version>2.5.7-SNAPSHOT</version>   
-</parent>
-
-<dependencies>
-    <dependency>
-        <groupId>org.noear</groupId>
-        <artifactId>solon-web</artifactId>
-    </dependency>
-</dependencies>
-```
-
-```java
-@SolonMain
-public class App {
-    public static void main(String[] args) {
-        Solon.start(App.class, args, app -> {
-            //Handler модел：
-            app.get("/hello", c -> c.output("Hello world!"));
-        });
-    }
-}
-
-//Controller модел：(mvc or rest-api)
-@Controller
-public class HelloController {
-    //Ограничение типов методов Socket
-    @Socket
-    @Mapping("/mvc/hello")
-    public String hello(String name) {
-        return "Hello " + name;
-    }
-}
-
-//Remoting модел：(rpc)
-@Mapping("/rpc/")
-@Remoting
-public class HelloServiceImpl implements HelloService {
-    @Override
-    public String hello() {
-        return "Hello world!";
-    }
-}
-```
-
-
-## Основные рамки и быстро интегрированные пакеты разработки：
-
-###### Главный фреймворк.：
-
-| Пакет компонентов                    | инструкц                          |
-|------------------------|-----------------------------|
-| org.noear:solon-parent | Полагаться на управление версиями                      |
-| org.noear:solon        | Главный фреймворк.                         |
-| org.noear:nami         | Фреймворк для партнеров (как клиент для solon remoting) |
-
-###### Быстрый интегральный пакет разработки и взаимосвязь：
-
-| Пакет компонентов                       | инструкц                                                    |
-|---------------------------|-------------------------------------------------------|
-| org.noear:solon-lib       | Быстрый набор базовых интегральных пакетов                                             |
-| org.noear:solon-api       | solon-lib + jlhttp boot；Быстро разработайте приложение интерфейса                       |
-| org.noear:solon-web       | solon-api + freemarker + sessionstate；Быстро разработайте веб-приложения       |
-| org.noear:solon-beetl-web | solon-api + beetl + beetlsql + sessionstate；Быстро разработайте веб-приложения |
-| org.noear:solon-enjoy-web | solon-api + enjoy + arp + sessionstate；Быстро разработайте веб-приложения      |
-| org.noear:solon-rpc       | solon-api + nami；Быстро разработайте приложение RPC                           |
-| org.noear:solon-cloud     | solon-rpc + consul；Быстро разработайте приложения микрослужб                         |
-
+<img src="solon_cloud_schema.png" width="700" />
 
 ## Официальная сеть и связанные с ней примеры, дела：
 

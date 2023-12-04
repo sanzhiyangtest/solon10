@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -20,7 +20,7 @@
             <artifactId>solon-rpc</artifactId>
         </dependency>
 
-        <!-- 注册与发现组件 -->
+        <!-- 注册与发现/事件总线/日志服务/分布式任务/等 -->
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>water-solon-cloud-plugin</artifactId>

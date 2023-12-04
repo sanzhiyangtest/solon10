@@ -7,7 +7,6 @@ import org.noear.solon.boot.ServerProps;
 import org.noear.solon.boot.prop.impl.WebSocketServerProps;
 import org.noear.solon.core.*;
 import org.noear.solon.core.util.LogUtil;
-import org.noear.solon.socketd.SessionManager;
 
 /**
  * @author noear
@@ -30,9 +29,6 @@ public class XPluginImpl implements Plugin {
 
     @Override
     public void start(AppContext context) throws Throwable {
-        //注册会话管理器
-        SessionManager.register(new _SessionManagerImpl());
-
         if (Solon.app().enableWebSocket() == false) {
             return;
         }
@@ -46,7 +42,7 @@ public class XPluginImpl implements Plugin {
         //初始化属性
         ServerProps.init();
 
-        WebSocketServerProps props = new WebSocketServerProps(10000);
+        WebSocketServerProps props = WebSocketServerProps.getInstance();
         final String _host = props.getHost();
         final int _port = props.getPort();
         final String _name = props.getName();
@@ -69,7 +65,8 @@ public class XPluginImpl implements Plugin {
 
         long time_end = System.currentTimeMillis();
 
-        LogUtil.global().info("Connector:main: netty-websocket: Started ServerConnector@{HTTP/1.1,[WebSocket]}{0.0.0.0:" + _port + "}");
+        String wsServerUrl = props.buildWsServerUrl(false);
+        LogUtil.global().info("Connector:main: netty-websocket: Started ServerConnector@{HTTP/1.1,[WebSocket]}{" + wsServerUrl + "}");
         LogUtil.global().info("Server:main: netty-websocket: Started (" + solon_boot_ver() + ") @" + (time_end - time_start) + "ms");
     }
 

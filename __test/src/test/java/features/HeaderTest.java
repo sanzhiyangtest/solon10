@@ -2,19 +2,21 @@ package features;
 
 
 import okhttp3.Response;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.noear.snack.ONode;
 import org.noear.solon.boot.web.Constants;
 import org.noear.solon.test.HttpTester;
-import org.noear.solon.test.SolonJUnit4ClassRunner;
+import org.noear.solon.test.SolonJUnit5Extension;
 import org.noear.solon.test.SolonTest;
 import webapp.App;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@RunWith(SolonJUnit4ClassRunner.class)
+@ExtendWith(SolonJUnit5Extension.class)
 @SolonTest(App.class)
 public class HeaderTest extends HttpTester {
     @Test
@@ -36,7 +38,7 @@ public class HeaderTest extends HttpTester {
     }
 
     @Test
-    public void test1_2() throws Exception {
+    public void test1_header2() throws Exception {
         String json = path("/demo2/header2/")
                 .headerAdd("test", "a")
                 .headerAdd("test", "b")
@@ -45,6 +47,17 @@ public class HeaderTest extends HttpTester {
         assert json.length() > 0;
         assert json.contains("a");
         assert json.contains("b");
+    }
+
+    @Test
+    public void test1_remote() throws IOException {
+        String json = path("/demo2/remote/").get();
+
+        assert json.length() > 0;
+        ONode oNode = ONode.load(json);
+        assert oNode.isArray();
+        assert oNode.get(1).val().getRaw() instanceof Number;
+        assert oNode.get(1).getInt() > 80;
     }
 
     @Test

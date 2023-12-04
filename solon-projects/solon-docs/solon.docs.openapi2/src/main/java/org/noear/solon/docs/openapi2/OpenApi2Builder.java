@@ -302,6 +302,13 @@ public class OpenApi2Builder {
             operation.setVendorExtension("controllerKey", controllerKey);
             operation.setVendorExtension("actionName", actionName);
 
+            //添加全局参数
+            for(Object p1 : docket.globalParams()){
+                if(p1 instanceof Parameter){
+                    operation.addParameter((Parameter)p1);
+                }
+            }
+
             if (Utils.isBlank(apiAction.consumes())) {
                 if (operationMethod.equals(ApiEnum.METHOD_GET)) {
                     operation.consumes(ApiEnum.CONSUMES_URLENCODED); //如果是 get ，则没有 content-type
@@ -517,7 +524,7 @@ public class OpenApi2Builder {
     private void parseActionParametersByFields(ParamHolder paramHolder, List<Parameter> paramList) {
         //做为 字段
         ClassWrap classWrap = ClassWrap.get(paramHolder.getParam().getType());
-        for (FieldWrap fw : classWrap.getFieldAllWraps().values()) {
+        for (FieldWrap fw : classWrap.getFieldWraps().values()) {
             if (Modifier.isTransient(fw.field.getModifiers())) {
                 continue;
             }
@@ -699,7 +706,7 @@ public class OpenApi2Builder {
 
         // 3.完成模型解析
         ClassWrap classWrap = ClassWrap.get(clazz);
-        for (FieldWrap fw : classWrap.getFieldAllWraps().values()) {
+        for (FieldWrap fw : classWrap.getFieldWraps().values()) {
             if (Modifier.isStatic(fw.field.getModifiers())) {
                 //静态的跳过
                 continue;

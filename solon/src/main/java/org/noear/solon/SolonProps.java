@@ -3,10 +3,10 @@ package org.noear.solon;
 import org.noear.solon.annotation.Import;
 import org.noear.solon.annotation.PropertySource;
 import org.noear.solon.core.*;
-import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.util.PluginUtil;
 import org.noear.solon.core.util.ResourceUtil;
 
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
@@ -31,10 +31,12 @@ import java.util.function.Predicate;
  * @since 1.0
  * */
 public final class SolonProps extends Props {
-    private NvMap args;
-    private Class<?> source;
-    private URL sourceLocation;
-    private boolean testing;
+    protected final List<String> warns = new ArrayList<>();
+
+    private final NvMap args;
+    private final Class<?> source;
+    private final URL sourceLocation;
+    private final boolean testing;
     private final List<PluginEntity> plugs = new ArrayList<>();
 
     private boolean isDebugMode;//是否为调试模式
@@ -44,7 +46,6 @@ public final class SolonProps extends Props {
     private boolean isSetupMode;//是否为安装蕈式
     private boolean isAloneMode;//是否为独立蕈式（即独立运行模式）
 
-
     private String env;
 
     private Locale locale;
@@ -52,18 +53,9 @@ public final class SolonProps extends Props {
     private String extend;
     private String extendFilter;
 
-
-    public SolonProps() {
+    public SolonProps(Class<?> source, NvMap args) throws Exception{
         super(System.getProperties());
-    }
 
-    /**
-     * 加载配置（用于第一次加载）
-     *
-     * @param source 应用源（即启动主类）
-     * @param args   启用参数
-     */
-    public SolonProps load(Class<?> source, NvMap args) throws Exception {
         //1.接收启动参数
         this.args = args;
         //1.1.应用源
@@ -72,6 +64,8 @@ public final class SolonProps extends Props {
         this.sourceLocation = source.getProtectionDomain().getCodeSource().getLocation();
         //1.3.测试隔离
         this.testing = args.containsKey("testing");
+
+        //::: 开始加载
 
         //2.同步启动参数到系统属性
         this.syncArgsToSys();
@@ -88,14 +82,14 @@ public final class SolonProps extends Props {
         appUrl = ResourceUtil.getResource("application.properties");
         if (appUrl != null) {
             loadInit(appUrl, sysPropOrg);
-            profileWran("application.properties");
+            profilesWran("application.properties");
         }
 
         //@Deprecated 2.2
         appUrl = ResourceUtil.getResource("application.yml");
         if (appUrl != null) {
             loadInit(appUrl, sysPropOrg);
-            profileWran("application.yml");
+            profilesWran("application.yml");
         }
 
         loadInit(ResourceUtil.getResource("app.properties"), sysPropOrg);
@@ -112,14 +106,14 @@ public final class SolonProps extends Props {
             appUrl = ResourceUtil.getResource("application-" + env + ".properties");
             if (appUrl != null) {
                 loadInit(appUrl, sysPropOrg);
-                profileWran("application-" + env + ".properties");
+                profilesWran("application-" + env + ".properties");
             }
 
             //@Deprecated 2.2
             appUrl = ResourceUtil.getResource("application-" + env + ".yml");
             if (appUrl != null) {
                 loadInit(appUrl, sysPropOrg);
-                profileWran("application-" + env + ".yml");
+                profilesWran("application-" + env + ".yml");
             }
 
             loadInit(ResourceUtil.getResource("app-" + env + ".properties"), sysPropOrg);
@@ -130,7 +124,9 @@ public final class SolonProps extends Props {
         //4.3.加载注解配置（优于固定配置）/v1.12
         loadAdd(source.getAnnotation(PropertySource.class)); //v1.12 //@deprecated 2.5
 
-        loadAdd(source.getAnnotation(Import.class));//v2.5
+        //导入自己的，同时导入注解的 Import 注解
+        importPropsTry(source);
+
 
         //4.4.加载配置 solon.config.load //支持多文件（只支持内部，支持{env}）
         Map<String,String> loadKeyMap = new TreeMap<>();
@@ -187,8 +183,20 @@ public final class SolonProps extends Props {
         } else {
             locale = Locale.getDefault();
         }
+    }
 
-        return this;
+    private void importPropsTry(Class<?> source) {
+        if (source == null) {
+            return;
+        }
+
+        for (Annotation a1 : source.getAnnotations()) {
+            if (a1 instanceof Import) {
+                loadAdd((Import) a1);
+            } else {
+                loadAdd(a1.annotationType().getAnnotation(Import.class));
+            }
+        }
     }
 
     private void addConfig(String vals, boolean isName, Properties sysPropOrg) {
@@ -197,7 +205,8 @@ public final class SolonProps extends Props {
                 URL propUrl = (isName ? ResourceUtil.getResource(val) : ResourceUtil.findResource(val));
 
                 if (propUrl == null) {
-                    LogUtil.global().warn("Props: No config file: " + val);
+                    //打印提醒
+                    warns.add("Props: No config file: " + val);
                 } else {
                     loadInit(propUrl, sysPropOrg);
                 }
@@ -205,9 +214,10 @@ public final class SolonProps extends Props {
         }
     }
 
-    private void profileWran(String file) {
+    private void profilesWran(String file) {
+        //配置文件提醒
         String sml = file.replace("application", "app");
-        LogUtil.global().warn("'" + file + "' is deprecated, please use '" + sml + "'");
+        warns.add("'" + file + "' is deprecated, please use '" + sml + "'");
     }
 
     private void syncArgsToSys() {

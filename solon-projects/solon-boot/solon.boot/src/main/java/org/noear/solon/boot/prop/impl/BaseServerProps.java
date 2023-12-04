@@ -201,10 +201,15 @@ public abstract class BaseServerProps implements ServerSignalProps, ServerExecut
     }
 
     /**
-     * 闪置超时
+     * 闲置超时
      */
     @Override
     public long getIdleTimeout() { //idleTimeout
+        return idleTimeout;
+    }
+
+    @Override
+    public long getIdleTimeoutOrDefault() {
         if (idleTimeout > 0) {
             return idleTimeout;
         } else {

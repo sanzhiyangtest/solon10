@@ -10,9 +10,11 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
-import org.noear.solon.Solon;
-import org.noear.solon.core.message.Message;
-import org.noear.solon.core.message.Session;
+import org.noear.solon.boot.prop.impl.WebSocketServerProps;
+import org.noear.solon.net.websocket.WebSocket;
+import org.noear.solon.net.websocket.WebSocketRouter;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author noear
@@ -21,6 +23,12 @@ import org.noear.solon.core.message.Session;
 public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
     public static final AttributeKey<String> ResourceDescriptorKey = AttributeKey.valueOf("ResourceDescriptor");
     public static final AttributeKey<WebSocketServerHandshaker> HandshakerKey = AttributeKey.valueOf("Handshaker");
+    public static final AttributeKey<WebSocketImpl> SessionKey = AttributeKey.valueOf("Session");
+
+    static final WebSocketServerProps wsProps = WebSocketServerProps.getInstance();
+
+    private final WebSocketRouter webSocketRouter = WebSocketRouter.getInstance();
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         //判断请求是HTTP请求还是WebSocket请求
@@ -62,7 +70,14 @@ public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
             ctx.attr(ResourceDescriptorKey).set(req.uri());
 
             //listener.onOpen();
-            Solon.app().listener().onOpen(_SocketServerSession.get(ctx));
+            WebSocketImpl webSocket = new WebSocketImpl(ctx);
+            ctx.attr(SessionKey).set(webSocket);
+            webSocketRouter.getListener().onOpen(webSocket);
+
+            //设置闲置超时
+            if (wsProps.getIdleTimeout() > 0) {
+                webSocket.setIdleTimeout(wsProps.getIdleTimeout());
+            }
         }
     }
 
@@ -72,7 +87,7 @@ public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
         //判断是否是关闭链路的指令
         if (frame instanceof CloseWebSocketFrame) {
             WebSocketServerHandshaker handshaker = ctx.attr(HandshakerKey).get();
-            if(handshaker != null){
+            if (handshaker != null) {
                 handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
             }
             return;
@@ -81,28 +96,41 @@ public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
         //判断是否是维持链路的Ping消息
         if (frame instanceof PingWebSocketFrame) {
             ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
+
+            WebSocketImpl webSocket = ctx.attr(SessionKey).get();
+            if (webSocket != null) {
+                webSocket.onReceive();
+            }
+            return;
+        }
+
+        if(frame instanceof PongWebSocketFrame) {
+            WebSocketImpl webSocket = ctx.attr(SessionKey).get();
+            if (webSocket != null) {
+                webSocket.onReceive();
+            }
             return;
         }
 
         if (frame instanceof TextWebSocketFrame) {
             //listener.onMessage();
-            Session session = _SocketServerSession.get(ctx);
+            WebSocketImpl webSocket = ctx.attr(SessionKey).get();
+            webSocket.onReceive();
+
             String msgTxt = ((TextWebSocketFrame) frame).text();
 
-            Message message = Message.wrap(session.pathNew(), null, msgTxt);
-
-            Solon.app().listener().onMessage(session, message);
+            webSocketRouter.getListener().onMessage(webSocket, msgTxt);
             return;
         }
 
         if (frame instanceof BinaryWebSocketFrame) {
             //listener.onMessage();
-            Session session = _SocketServerSession.get(ctx);
+            WebSocketImpl webSocket = ctx.attr(SessionKey).get();
+            webSocket.onReceive();
+
             byte[] msgBytes = frame.content().array();
 
-            Message message = Message.wrap(session.pathNew(), null, msgBytes);
-
-            Solon.app().listener().onMessage(session, message);
+            webSocketRouter.getListener().onMessage(webSocket, ByteBuffer.wrap(msgBytes));
             return;
         }
     }
@@ -126,7 +154,13 @@ public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         //listener.onClose();
-        Solon.app().listener().onClose(_SocketServerSession.get(ctx));
+        WebSocketImpl webSocket = ctx.attr(SessionKey).get();
+        if (webSocket.isClosed()) {
+            return;
+        } else {
+            webSocket.close();
+        }
+        webSocketRouter.getListener().onClose(webSocket);
     }
 
     /**
@@ -135,7 +169,8 @@ public class WsServerHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //listener.onError();
-        Solon.app().listener().onError(_SocketServerSession.get(ctx), cause);
+        WebSocket webSocket = ctx.attr(SessionKey).get();
+        webSocketRouter.getListener().onError(webSocket, cause);
         ctx.close();
     }
 }

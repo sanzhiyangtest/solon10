@@ -1,6 +1,6 @@
 package benchmark;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +25,7 @@ public class MapPutTest {
     private Object get1(String key) { //5
         Object val = cached.get(key);
         if (val == null) {
-            synchronized (key.intern()) {
+            synchronized (cached) {
                 val = cached.get(key);
 
                 if (val == null) {

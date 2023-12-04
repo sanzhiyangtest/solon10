@@ -9,7 +9,9 @@ import org.noear.solon.core.util.ConsumerEx;
  *
  * @author noear
  * @since 1.4
+ * @deprecated 2.5
  */
+@Deprecated //用处不大，浪费代码
 public class SolonBuilder {
 
     /**
@@ -21,15 +23,6 @@ public class SolonBuilder {
     public <T> SolonBuilder onEvent(Class<T> type, EventListener<T> listener) {
         EventBus.subscribe(type, listener);
         return this;
-    }
-
-    /**
-     * 订阅异常事件
-     *
-     * @param listener 监听器
-     */
-    public SolonBuilder onError(EventListener<Throwable> listener) {
-        return onEvent(Throwable.class, listener);
     }
 
     /**

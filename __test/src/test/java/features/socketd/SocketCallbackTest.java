@@ -1,13 +1,17 @@
 package features.socketd;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.noear.nami.channel.socketd.SocketdProxy;
 import org.noear.snack.ONode;
-import org.noear.solon.core.message.Listener;
-import org.noear.solon.core.message.Message;
-import org.noear.solon.core.message.Session;
-import org.noear.solon.socketd.SocketD;
-import org.noear.solon.test.SolonJUnit4ClassRunner;
+import org.noear.socketd.SocketD;
+import org.noear.socketd.transport.core.Entity;
+import org.noear.socketd.transport.core.Message;
+import org.noear.socketd.transport.core.Session;
+import org.noear.socketd.transport.core.entity.StringEntity;
+import org.noear.socketd.transport.core.listener.PipelineListener;
+import org.noear.socketd.transport.core.listener.SimpleListener;
+import org.noear.solon.test.SolonJUnit5Extension;
 import org.noear.solon.test.SolonTest;
 import webapp.App;
 
@@ -16,33 +20,33 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SolonJUnit4ClassRunner.class)
+@ExtendWith(SolonJUnit5Extension.class)
 @SolonTest(App.class)
 public class SocketCallbackTest {
     @Test
     public void test_callback_message() throws Throwable {
         int _port = 8080 + 20000;
 
-        Session session = SocketD.createSession("tcp://localhost:"+ _port, true);
-
-        session.listener(new Listener() {
-            @Override
-            public void onMessage(Session session, Message message) {
-                System.out.println("实例监到，收到了："+message);
-            }
-        });
+        Session session = SocketD.createClient("tcp://localhost:"+ _port)
+                .listen(new PipelineListener().next(new SimpleListener(){
+                    @Override
+                    public void onMessage(Session session, Message message) {
+                        System.out.println("实例监到，收到了："+message);
+                    }
+                }).next(SocketdProxy.socketdToHandler))
+                .open();
 
         String root = "tcp://localhost:" + _port;
         Map<String, Object> map = new HashMap<>();
         map.put("name", "noear");
         String map_josn = ONode.stringify(map);
 
-        Message message = Message.wrap(root + "/demoh/rpc/hello","Content-Type=application/json", map_josn);
+        Entity message = new StringEntity(map_josn).meta("Content-Type", "application/json");
 
 
         CompletableFuture<Boolean> check = new CompletableFuture<>();
-        session.sendAndCallback(message, (rst, err) -> {
-            String rst_str = ONode.deserialize(rst.bodyAsString());
+        session.sendAndSubscribe(root + "/demoh/rpc/hello", message, (rst) -> {
+            String rst_str = ONode.deserialize(rst.dataAsString());
 
             System.out.println("收到："+rst_str);
 

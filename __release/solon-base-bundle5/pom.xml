@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -22,6 +22,7 @@
         <module>../../solon-projects/solon-render/solon.serialization.fastjson2</module>
         <module>../../solon-projects/solon-render/solon.serialization.jackson</module>
         <module>../../solon-projects/solon-render/solon.serialization.gson</module>
+        <module>../../solon-projects/solon-render/solon.serialization.fury</module>
         <module>../../solon-projects/solon-render/solon.serialization.hessian</module>
         <module>../../solon-projects/solon-render/solon.serialization.protostuff</module>
         <module>../../solon-projects/solon-render/solon.view</module>

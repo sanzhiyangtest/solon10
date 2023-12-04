@@ -4,13 +4,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.noear.solon.Solon;
 import org.noear.solon.Utils;
 import org.noear.solon.annotation.Init;
 import org.noear.solon.annotation.Singleton;
 import org.noear.solon.core.util.ClassUtil;
 import org.noear.solon.core.util.IndexUtil;
-import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.wrap.ClassWrap;
 
 /**
@@ -52,26 +50,26 @@ public class BeanWrap {
     private final AppContext context;
 
 
-    public BeanWrap(AopContext context, Class<?> clz) {
+    public BeanWrap(AppContext context, Class<?> clz) {
         this(context, clz, null);
     }
 
-    public BeanWrap(AopContext context, Class<?> clz, Object raw) {
+    public BeanWrap(AppContext context, Class<?> clz, Object raw) {
         this(context, clz, raw, null);
     }
 
     /**
      * @since 1.10
      */
-    public BeanWrap(AopContext context, Class<?> clz, Object raw, String name) {
+    public BeanWrap(AppContext context, Class<?> clz, Object raw, String name) {
         this(context, clz, raw, name, false);
     }
 
     /**
      * @since 1.10
      */
-    public BeanWrap(AopContext context, Class<?> clz, Object raw, String name, boolean typed) {
-        this.context = (AppContext) context;
+    public BeanWrap(AppContext context, Class<?> clz, Object raw, String name, boolean typed) {
+        this.context = context;
         this.clz = clz;
         this.name = name;
         this.typed = typed;
@@ -95,7 +93,7 @@ public class BeanWrap {
         }
 
         //尝试初始化
-        tryInit(this.raw);
+        tryInit();
     }
 
     public AppContext context() {
@@ -261,7 +259,7 @@ public class BeanWrap {
                     tmp = proxy.getProxy(context(), tmp);
                 }
 
-                return (T)tmp;
+                return (T) tmp;
             }
         }
     }
@@ -296,11 +294,7 @@ public class BeanWrap {
      *
      * @since 2.3
      */
-    protected void tryInit(Object bean) {
-        if(bean == null){
-            return;
-        }
-
+    protected void tryInit() {
         if (clzInit != null) {
             if (clzInitIndex == 0) {
                 //如果为0，则自动识别
@@ -310,7 +304,9 @@ public class BeanWrap {
             //保持与 LifecycleBean 相同策略：+1
             context.lifecycle(clzInitIndex + 1, () -> {
                 try {
-                    clzInit.invoke(bean);
+                    if (raw() != null) {
+                        clzInit.invoke(raw());
+                    }
                 } catch (InvocationTargetException e) {
                     Throwable e2 = e.getTargetException();
                     throw Utils.throwableUnwrap(e2);
@@ -334,7 +330,7 @@ public class BeanWrap {
         ClassWrap clzWrap = ClassWrap.get(clz);
 
         //查找初始化函数
-        for (Method m : clzWrap.getMethods()) {
+        for (Method m : clzWrap.getDeclaredMethods()) {
             Init initAnno = m.getAnnotation(Init.class);
             if (initAnno != null) {
                 if (m.getParameters().length == 0) {
@@ -342,10 +338,6 @@ public class BeanWrap {
                     clzInit = m;
                     clzInit.setAccessible(true);
                     clzInitIndex = initAnno.index();
-
-                    if (Solon.cfg().isDebugMode()) {
-                        LogUtil.global().warn("@Init will be discarded, suggested use 'LifecycleBean' interface");
-                    }
                 }
                 break;
             }

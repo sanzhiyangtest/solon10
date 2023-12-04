@@ -1,7 +1,7 @@
 package benchmark;
 
 import features._model.UserModel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.noear.solon.core.wrap.ClassWrap;
 
 import java.lang.reflect.Method;
@@ -30,7 +30,7 @@ public class SpeetTest {
         long start = System.currentTimeMillis();
 
         for (int i = 0; i < 100000; i++) {
-            for(Method m: ClassWrap.get(UserModel.class).getMethods()){
+            for(Method m: ClassWrap.get(UserModel.class).getDeclaredMethods()){
                 for(Parameter p : m.getParameters()){
 
                 }

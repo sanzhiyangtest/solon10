@@ -2,6 +2,7 @@ package org.noear.solon.cloud.impl;
 
 import org.noear.solon.Utils;
 import org.noear.solon.cloud.service.CloudTraceService;
+import org.noear.solon.core.FactoryManager;
 import org.noear.solon.core.handle.Context;
 
 /**
@@ -19,7 +20,7 @@ public class CloudTraceServiceImpl implements CloudTraceService {
         return "X-Solon-From-Id";
     }
 
-    static final ThreadLocal<String> traceIdLocal = new InheritableThreadLocal<>();
+    static final ThreadLocal<String> traceIdLocal = FactoryManager.newThreadLocal(true);
 
     @Override
     public void setLocalTraceId(String traceId) {

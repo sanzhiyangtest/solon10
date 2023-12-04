@@ -9,25 +9,182 @@
 * 提醒1：之前没有使用弃用接口的，可以直接升级 <br>
 * 提醒2：有使用弃用接口的。建议先升级到 1.12.4；替换弃用代码后，再升级到 2.0.0
 
-### 2.5.8
+
+### 待议
 * 新增 solon.boot.vertx 插件?
 * 新增 seata-solon-plugin 插件
-* 新增 graphql-solon-plugin 插件
 * 增加 quartz jdbc 及时更新支持（数据库里变了，它马上变） ???
-* 调整 使用更多的 slf4j 替换 LogUtil ???
 * 调整 solon.config.add 与 solon.config.load 合并，规范格式（同时支持内部与外部） ???
-* 调整 简化 SocketD ???
+* 调整 使用更多的 slf4j 替换 LogUtil ???
+* 调整 取消启动参数简写模式，保持与应用参数相同的名字 ???
+* 新增 graphql-solon-plugin 插件
+
+### 2.6.2
+* 修复 solon.logging.logback 对 solon.logging.appender.console.enable 配置无效的问题
+* socket.d 升为 2.1.3
+* nacos2 升为 2.3.0
+* folkmq 升为 1.0.12
+
+### 2.6.1
+* 新增 folkmq-solon-cloud-plugin 插件
+* 新增 solon.luffy 插件
+* 添加 solon.docs 全局参数支持
+* 添加 solon.logging 配置提示文件
+* 添加 rabbitmq-solon-cloud-plugin 消息并发处理机制
+* 添加 RunUtil::asyncAndTry 接口
+* 添加 WebSocket::id, attrHas 接口
+* 添加 WebSocket::setIdleTimeout 接口
+* 添加 NamiClient::name 支持配置表达式
+* 调整 solon.auth 取消 AuthUtil 验证路径、权限、角色与登录绑死。由用户适配的处理器决定
+* 调整 scheduledPoolSize 默认值多一倍
+* 调整 solon.scheduling.simple 过滤中断异常
+* 调整 solon.logging 注册日志打印，取消不必要的打印
+* 调整 RouterWebSocketListener 更名为 PathWebSocketListener 
+* 调整 http-server 的 idleTimeout 策略
+* 修复 Snack3 不能反序列化 SaSession 的问题
+* 修复 solon.logging.config 的配置文件不存在时会异常的问题
+* 修复 solon.boot.smarthttp 获取 queryString 会中文乱码的问题 
+* 移除 `@Dao`,`@Service`,`@Repository` 三个注解（弃用很久了，容易带来误解）
+* snack3 升为 3.2.84
+* socket.d 升为 2.0.22
+* wood 升为 1.2.6
+* mysql-flex 升为 1.7.5
+* sqltoy 升为 5.2.82
+* beetlsql 升为 3.27.2-RELEASE
+* smartsocket 升为 1.5.38
+* undertow 升为 2.2.28.Final
+* netty 升为 4.1.86.Final
+
+### 2.6.0
+* 设定 smart-http 为 solon-api 快捷组合包的默认 http-server
+* 重构 socketd 适配，升为 v2.0
+* 重构 websocket 适配，升为 v2.0
+* 新增 solon.net 模块用于定义网络接口，分离 websocket 与 socketd 的接口（分开后，用户层面更清爽）
+* 新增 solon.boot.socketd 插件
+* 新增 sa-token-dao-redisson-jackson 插件
+* 添加 SolonApp::filterIfAbsent,routerInterceptorIfAbsent 接口
+* 添加 AppContext::getBeansMapOfType 接口
+* 添加 websocket context-path 过滤处理机制
+* 添加 `@Cache` 缓存注解处理对动态开关的支持（之前，只能在启动时决定）
+* 添加 `@Tran` 事务注解处理对动态开关的支持（之前，只能在启动时决定）
+* 添加 solon.boot.smarthttp 外部优先级处理（成为默认后，要方便外部替换它）
+* 调整 smart-http,jetty,undertow 统一使用 server.http.idleTimeout 配置
+* 调整 `@ProxyComponent` 弃用提示为直接提示（之前为 debug 模式下）
+* 调整 websocket server 的地址打印
+* 移除 AopContext（完成更名 AppContext 的第二步动作）
+* 移除 PathLimiter （已无用，留着有误导性）
+* 移除 SolonApp::enableWebSocketD,enableWebSocketMvc,enableSocketMvc（已无用，留着有误导性）
+* 优化 http context-path 过滤器处理机制
+* 优化 solon.test 的 `@Rollback` 注解处理，支持 web 的事务控制
+* 优化 solon.scheduling.simple 保持与 jdk 调度服务的策略一致
+* 删除 socketd v1.0 相关的 10 多个插件（v2.0 独立仓库）
+* jackson 升为 2.15.2
+* pagehelper 升为 5.3.3
+* liteflow 升为 2.11.3
+* activemq 升为 5.16.7
+* redisx 升为 1.6.2
+* minio8 升为 8.5.3
+* sqltoy 升为 5.2.81
+* fastjson2 升为 2.0.42
+* luffy 升为 1.7.0
+* water 升为 2.12.0
+
+
+
+### 2.5.12
+* 调整 solon.view 插件，默认添加请求上下文 context 对象
+* 调整 SnackActionExecutor 默认关闭 className 读取
+* 调整 事务监听器 afterCommit 时，转为无事务状态（移除事务状态）
+* 优化 SolonApp 构造时日志处理（避免失去样式的可能）
+* 优化 容器停止时把 Closeable 接口的 bean 也关掉
+* 优化 solon.data 插件 afterCommit 事件之前移除事务状态
+* 优化 属性引用表达式，当环境变量无时马上使用默认值（环境变量是启动时决定的，有或无固定了）
+* 优化 mqtt-solon-cloud-plugin 重构代码，增加异步发布与并发消费模式（并改为异步接口）
+* 优化 mqtt5-solon-cloud-plugin 重构代码，增加异步发布与并发消费模式（并改为异步接口）
+* 增加 solon.aot 支持使用命令行设置 构建 native image args
+* 增加 Utils::isProxyClass 接口
+* 修复 solon.boot.smarthttp 可能会两次触发 close 的问题
+* snack3 升为 3.2.82
+* sqltoy 升为 5.2.75
+* mybatis-flex 升为 1.7.3
+* activemq 升为 5.15.12
+* sureness 升为 1.0.8
+* guava 升为 32.1.3-jre
+* pulsar 升为 2.11.2
+* beetlsql 升为 3.26.1-RELEASE
+* smarthttp 升为 1.3.5
+
+### 2.5.11
+* 新增 nami.coder.fury 插件
+* 新增 solon.serialization.fury 插件
+* 新增 hibernate-solon-plugin 插件（提供标准 jpa 支持）
+* 修复 @Import::classes 未被执行的问题
+* 修复 socketd.session 关闭时，自动心跳不能停止的问题
+* 修复 solon.logging.logback 控制台等级 yml 配置失效的问题
+* 优化 Solon::cfg() 多配置加载的校验机制
+* 优化 solon.logging.logback 原生编译元信息配置
+* 优化 运行时退出勾子的处理，非 aot 情况下强制退出
+* 调整 socketd.session::sendHeartbeatAuto 更名为 startHeartbeatAuto （内部接口）
+* 调整 @Init 的弃用提示（改为推荐了）
+* 添加 @Import::profiles, @Import::profilesIfAbsent 接口
+* 添加 DynamicDsKey 类, 替代 DynamicDsHolder
+* 添加 socketd.session::stopHeartbeatAuto 接口
+* snack3 升为 3.2.81
+* liteflow 升为 2.11.2
+* sqltoy 升为 5.2.73
+* mybatis-flex 升为 1.7.2
+* sa-token 升为 1.37.0
+* redisx 升为 1.6.1
+* smarthttp 升为 1.3.4
+* beetlsql 升为 3.26.0-RELEASE
+* beetl 升为 3.15.10.RELEASE
+* fastjson2 升为 2.0.41
+* rabbitmq 升为 5.19.0
+* dubbo3 升为 3.2.7
+* rocketmq4 升为 2.9.7
+* kafka_2.13 升为 3.6.0
+* sms4j 升为 3.0.2
+* dromara-plugins 升为 0.1.1
+
+### 2.5.10
+* 新增 ConverterFactory 接口
+* 恢复 @Mapping 函数旧版兼容，改为告警（以后去掉非公有支持）
+* 增加 @Mapping 函数非公有告警提醒
+* 弃用 SolonBuilder
+
+### 2.5.9
+* 修订 CONTRIBUTING.md
+* 新增 事务管理的 TranListener 机制支持!!!
+* 新增 Mapping 函数对 TypeVariable 参数类型的识别支持!!!
+* 新增 Mapping 函数父类继承的支持（仅限 public）!!!
+* 新增 FactoryManager 工具类，合并各种工厂管理，替代旧的 Bridge
+* 弃用 InitializingBean（简化应用生命周期）
+* 删除 SolonApp::onError,::enableErrorAutoprint 接口（已无用，留着有误导性）
+* 删除 LogUtil::globalSet 接口（已无用，留着有误导性）
+* 调整 Get,Put,Post,Delete,Patch 注解，取消 ElementType.TYPE 目标
+* 调整 solon.logging 的 MDC.clear() 时机（安排到最外层）
+* 调整 数据源事务管理相关改为线程状态可继承（支持通过 FactoryManager 设置 threadLocalFactory）
+* 调整 所有模块的单测都升级为 junit5（落实最新的 CONTRIBUTING 规范）
+* 调整 water-solon-cloud-plugin 本地调试时服务注册改为被动检测（之前为主动上报）
+* 调整 HttpServerConfigure::enableSsl 允许自己设定 SSLContext（方便国密处理）
+* 增加 动态数据源注解 `@DynamicDs("${ddsName}")` 参数模板支持
+* 增加 Context::remotePort 接口
+* 增加 Context::remoteIp 接口，原 ip 接口标为弃用
+* 增加 `@Init` 函数对 AOP 的支持（有时候初始化也要用事务注解之类的）
+* 增加 配置提示元文件???
+* 修复 solon.socketd.client.websocket 自动重连失效的问题
+* sqltoy 升为 5.2.69
+* mybatis-flex 升为 1.7.0
+
+### 2.5.8
+* 取消 全局未处理异常走总线的机制，转由 Log 框架接收（简化用户体验）
 
 ### 2.5.7
 
-* 新增 hibernate-solon-plugin 插件
-* 增加 http server gzip 体整配置支持
 * 增加 Context::headerOfResponse 接口
+* 增加 http server gzip 整体配置支持
 * 增加 solon.web.staticfiles 对 gzip 的配置支持
-* 增加 solon.boot.jdkhttp 对 gzip 的配置支持
-* 增加 solon.boot.smarthttp 对 gzip 的配置支持
-* 增加 solon.web.servlet 对 gzip 的配置支持
-* 增加 solon.web.servlet.jakarta 对 gzip 的配置支持
+* 增加 solon.boot.jdkhttp 对 gzip 的配置支持（取消内部的自动处理）
 * 调整 `@Import` 替代 `@PropertySource`、`@TestPropertySource`，后者标为弃用
 * 调整 `@Rollback` 替代 `@TestRollback`，后者标为弃用
 * 调整 SolonTestApp 默认关闭 http 服务；避免与已启动服务端口冲突
@@ -35,17 +192,20 @@
 * 调整 solon.cache.redission RedissonCacheService 增加外部序列化接口支持
 * 调整 `@Bean` 函数，参数没带注解的算必须
 * 调整 paramsMap 增加 autoMultipart 处理
+* 调整 nami,forest,feign 负载均衡的获取方式
 * 修复 solon-maven-plugin 在 linux 下因为一些用户角色没有权限导致打包失败问题
 * 优化 `VarGather` 检查增加自动排序
 * 优化 Props::getMap 处理
 * 简化 Props::getProp 处理提升性能
 * wood 升为 1.2.2
-* mybatis-flex 升为 1.6.7
+* mybatis-flex 升为 1.6.8
+* fastmybatis 升为 2.9.7
 * easy-trans 升为 1.3.0
 * sa-token 升为 1.36.0
 * fastjson2 升为 2.4.0
 * jetty 升为 9.4.52.v20230823
 * undertow 升为 2.2.26.Final
+* redisx 升为 1.6.0
 
 ### 2.5.6
 * asm 升为 9.5 （for JDK21）
@@ -83,7 +243,6 @@
 * mybatis-flex 升为 1.6.5
 * sqltoy 升为 5.2.66
 * polaris 升为 1.14.1
-* lombok 升为 1.18.28
 * slf4j 升为 2.0.9
 * lombok 升为 1.18.30（for JDK21）
 
@@ -565,7 +724,7 @@
 * 新增 solon.web.sdl 插件替代 solon.web.sso（之前名字搞错了）
 * 插件 solon.boot.jetty 增加 jetty-servlet 依赖（solon.boot.jetty.add.servlet 就不需要了）
 * 插件 solon.boot.jlhttp 优化线程不够时会处理方式
-* 插件 solon.boot.sockted.jdksocket 优化线程不够时会处理方式
+* 插件 solon.boot.socketd.jdksocket 优化线程不够时会处理方式
 * 插件 solon.boot.smarthttp 优化二级池线程不够时会处理方式
 * 插件 solon-maven-plugin 打包机制，支持 scope system 包编译
 * 增加 @Configuration + @Inject 支持配置变更事件的注入

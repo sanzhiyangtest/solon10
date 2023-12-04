@@ -71,10 +71,6 @@ public class MethodTypeUtil {
             list.add(MethodType.SOCKET);
         }
 
-        if (checker.test(WebSocket.class)) {
-            list.add(MethodType.WEBSOCKET);
-        }
-
         return list;
     }
 }

@@ -257,6 +257,9 @@ public class NamiHandler implements InvocationHandler {
             type = method.getReturnType();
         }
 
+        if(url.startsWith("sd:")){
+            url = url.substring(3);
+        }
 
         //执行调用
         Object rst = new Nami(config)
@@ -272,7 +275,7 @@ public class NamiHandler implements InvocationHandler {
     private Map<String, String> buildPathKeys(String path) {
         Map<String, String> pathKeys = pathKeysCached.get(path);
         if (pathKeys == null) {
-            synchronized (path.intern()) {
+            synchronized (pathKeysCached) {
                 pathKeys = pathKeysCached.get(path);
                 if (pathKeys == null) {
                     pathKeys = new LinkedHashMap<>();

@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -20,6 +20,7 @@
         <module>../../solon-projects/solon-boot/solon.boot.jdkhttp</module>
         <module>../../solon-projects/solon-boot/solon.boot.jlhttp</module>
         <module>../../solon-projects/solon-boot/solon.boot.smarthttp</module>
+        <module>../../solon-projects/solon-boot/solon.boot.nettyhttp</module>
         <module>../../solon-projects/solon-boot/solon.boot.jetty</module>
         <module>../../solon-projects/solon-boot/solon.boot.undertow</module>
         <module>../../solon-projects/solon-boot/solon.boot.tomcat</module>
@@ -30,5 +31,6 @@
         <module>../../solon-projects/solon-boot/solon.boot.jetty.add.websocket</module>
         <module>../../solon-projects/solon-boot/solon.boot.undertow.add.jsp</module>
         <module>../../solon-projects/solon-boot/solon.boot.tomcat.add.jsp</module>
+        <module>../../solon-projects/solon-boot/solon.boot.socketd</module>
     </modules>
 </project>

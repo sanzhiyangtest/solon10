@@ -4,10 +4,10 @@ import org.noear.solon.Solon;
 import org.noear.solon.Utils;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.*;
-import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.route.RoutingDefault;
 import org.noear.solon.core.route.RoutingTable;
 import org.noear.solon.core.route.RoutingTableDefault;
+import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.util.PathUtil;
 import org.noear.solon.core.util.DataThrowable;
 import org.noear.solon.core.util.RankEntity;
@@ -39,6 +39,7 @@ import java.util.function.Predicate;
  * @since 1.0
  * */
 public abstract class Gateway extends HandlerAide implements Handler, Render {
+
     //主处理缺省
     private Handler mainDef;
     //主处理路由
@@ -126,7 +127,8 @@ public abstract class Gateway extends HandlerAide implements Handler, Render {
         if (obj instanceof Throwable) {
             if (c.remoting()) {
                 //尝试推送异常，不然没机会记录；也可对后继做控制
-                EventBus.publishTry(obj);
+                Throwable objE = (Throwable)obj;
+                LogUtil.global().warn("Gateway remoting handle failed!", objE);
 
                 if (c.getRendered() == false) {
                     c.render(obj);

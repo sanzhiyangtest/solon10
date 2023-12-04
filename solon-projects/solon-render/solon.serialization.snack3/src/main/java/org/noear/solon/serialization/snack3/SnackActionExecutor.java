@@ -1,6 +1,7 @@
 package org.noear.solon.serialization.snack3;
 
 import org.noear.snack.ONode;
+import org.noear.snack.core.Feature;
 import org.noear.snack.core.Options;
 import org.noear.solon.Utils;
 import org.noear.solon.core.handle.ActionExecuteHandlerDefault;
@@ -22,7 +23,7 @@ public class SnackActionExecutor extends ActionExecuteHandlerDefault {
 
     private static final String label = "/json";
 
-    private final Options config = Options.def();
+    private final Options config = Options.def().add(Feature.DisableClassNameRead);
 
     /**
      * 反序列化配置
@@ -88,11 +89,11 @@ public class SnackActionExecutor extends ActionExecuteHandlerDefault {
             if (pt.isPrimitive() || pt.getTypeName().startsWith("java.lang.")) {
                 return super.changeValue(ctx, p, pi, pt, bodyObj);
             } else {
-                if (List.class.isAssignableFrom(p.getType())) {
+                if (List.class.isAssignableFrom(pt)) {
                     return null;
                 }
 
-                if (p.getType().isArray()) {
+                if (pt.isArray()) {
                     return null;
                 }
 
@@ -117,7 +118,7 @@ public class SnackActionExecutor extends ActionExecuteHandlerDefault {
                 return tmp.toObject(p.getGenericType());
             }else{
                 //不仅可以转换为List 还可以转换成Set
-                return tmp.toObject(p.getType());
+                return tmp.toObject(pt);
             }
         }
 

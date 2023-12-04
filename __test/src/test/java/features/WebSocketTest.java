@@ -1,21 +1,19 @@
 package features;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.noear.solon.core.message.Listener;
-import org.noear.solon.core.message.Message;
-import org.noear.solon.core.message.Session;
-import org.noear.solon.socketd.SocketD;
-import org.noear.solon.test.SolonJUnit4ClassRunner;
+import org.noear.java_websocket.client.SimpleWebSocketClient;
+import org.java_websocket.client.WebSocketClient;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.noear.solon.test.SolonJUnit5Extension;
 import org.noear.solon.test.SolonTest;
 import webapp.App;
-import webapp.demoe_websocket.WsDemoClient;
+import webapp.demof_websocket.WsDemoClient;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SolonJUnit4ClassRunner.class)
+@ExtendWith(SolonJUnit5Extension.class)
 @SolonTest(App.class)
 public class WebSocketTest {
     @Test
@@ -24,19 +22,10 @@ public class WebSocketTest {
         //测试websocket框架
         //
         Thread.sleep(100);
-        long time_start = System.currentTimeMillis();
 
-        WsDemoClient client = new WsDemoClient(URI.create("ws://127.0.0.1:18080/demoe/websocket/12"));
-        client.connect();
+        WsDemoClient client = new WsDemoClient(URI.create("ws://127.0.0.1:18080/demof/websocket/12"));
+        client.connectBlocking();
 
-        while (!client.isOpen()) {
-            if (System.currentTimeMillis() - time_start > 1000 * 2) {
-                throw new RuntimeException("没有WebSocket服务或链接超时");
-            }
-
-            Thread.sleep(100);
-            //System.out.println("还没有打开:" + client.getReadyState());
-        }
         System.out.println("建立websocket连接");
         Exception errors = null;
         try {
@@ -54,27 +43,26 @@ public class WebSocketTest {
 
     @Test
     public void test_async_message3_ws() throws Throwable {
-        Session session = SocketD.createSession("ws://127.0.0.1:18080/demoe/websocket/12", true);
-
         CompletableFuture<Boolean> check = new CompletableFuture<>();
-        session.listener(new Listener() {
+        WebSocketClient webSocketClient = new SimpleWebSocketClient(URI.create("ws://127.0.0.1:18080/demof/websocket/12")){
             @Override
-            public void onMessage(Session session, Message message) {
+            public void onMessage(String message) {
                 System.out.println("异步发送-ws::实例监到，收到了：" + message);
                 check.complete(true);
             }
-        });
+        };
 
+        webSocketClient.connectBlocking();
 
         //异步发
-        session.sendAsync("test0");
-        session.sendAsync("test1");
-        session.sendAsync("test2");
-        session.sendAsync("test3");
+        webSocketClient.send("test0");
+        webSocketClient.send("test1");
+        webSocketClient.send("test2");
+        webSocketClient.send("test3");
 
         assert check.get(2, TimeUnit.SECONDS);
 
-        session.close();
+        webSocketClient.close();
 
         Thread.sleep(1000);
     }

@@ -13,7 +13,9 @@ import org.noear.solon.boot.http.HttpServerConfigure;
 import org.noear.solon.cloud.CloudClient;
 import org.noear.solon.core.AppContext;
 import org.noear.solon.core.ExtendLoader;
+import org.noear.solon.core.FactoryManager;
 import org.noear.solon.core.handle.MethodType;
+import org.noear.solon.net.websocket.WebSocketRouter;
 import org.noear.solon.scheduling.annotation.EnableAsync;
 import org.noear.solon.scheduling.annotation.EnableRetry;
 import org.noear.solon.web.cors.CrossHandler;
@@ -25,7 +27,6 @@ import org.noear.solon.serialization.JsonRenderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webapp.demo6_aop.TestImport;
-import webapp.models.CatTypeConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -64,14 +65,20 @@ public class App {
         }
 
 
+        FactoryManager.threadLocalFactory((inheritable)->{
+            if(inheritable) {
+                return new InheritableThreadLocal();
+            }else {
+                return new ThreadLocal();
+            }
+        });
+
 
         Locale.setDefault(Locale.SIMPLIFIED_CHINESE);
         //LogUtil.globalSet(new LogUtilToSlf4j());
 
         //构建方式
-        SolonApp app = new SolonBuilder().onError(e -> {
-            e.printStackTrace();
-        }).onAppInitEnd(e -> {
+        SolonApp app = new SolonBuilder().onAppInitEnd(e -> {
             StaticMappings.add("/", new ExtendStaticRepository());
             System.out.println("1.初始化完成");
         }).onAppPluginLoadEnd(e -> {
@@ -83,9 +90,7 @@ public class App {
         }).start(App.class, args, x -> {
 
             x.enableSocketD(true);
-            x.enableSocketMvc(true);
             x.enableWebSocket(true);
-            x.enableWebSocketMvc(true);
 
             //x.converterManager().register(new CatTypeConverter());
 
@@ -134,13 +139,13 @@ public class App {
 //        });
 
 
-//        app.ws("/demoe/websocket/{id}",(session,message)->{
+//        app.ws("/demof/websocket/{id}",(session,message)->{
 //            System.out.println(session.uri());
 //            System.out.println("WebSocket-PathVar:Id: " + session.param("id"));
 //        });
 
 
-//        app.ws("/demoe/websocket/{id}",(session,message)->{
+//        app.ws("/demof/websocket/{id}",(session,message)->{
 //            System.out.println(session.uri());
 //
 //            if(Solon.cfg().isDebugMode()){
@@ -166,13 +171,7 @@ public class App {
 
 
         //socket server
-        app.socket("/seb/test", (c) -> {
-            String msg = c.body();
-            c.output("收到了...:" + msg);
-        });
-
-        //web socket wss 监听
-        app.ws("/seb/test", (c) -> {
+        app.socketd("/seb/test", (c) -> {
             String msg = c.body();
             c.output("收到了...:" + msg);
         });

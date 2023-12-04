@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -16,23 +16,20 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>../../solon-projects/solon-remoting/solon.socketd</module>
-        <module>../../solon-projects/solon-remoting/solon.socketd.client.jdksocket</module>
-        <module>../../solon-projects/solon-remoting/solon.socketd.client.netty</module>
-        <module>../../solon-projects/solon-remoting/solon.socketd.client.rsocket</module>
-        <module>../../solon-projects/solon-remoting/solon.socketd.client.smartsocket</module>
-        <module>../../solon-projects/solon-remoting/solon.socketd.client.websocket</module>
-        <module>../../solon-projects/solon-boot/solon.boot.socketd.jdksocket</module>
-        <module>../../solon-projects/solon-boot/solon.boot.socketd.netty</module>
-        <module>../../solon-projects/solon-boot/solon.boot.socketd.smartsocket</module>
-        <module>../../solon-projects/solon-boot/solon.boot.socketd.rsocket</module>
-        <module>../../solon-projects/solon-boot/solon.boot.socketd.websocket</module>
+        <module>../../solon-projects/solon-native/solon.aot</module>
+
+        <module>../../solon-projects/solon-faas/solon.luffy</module>
 
         <module>../../solon-projects/solon-detector/solon.health</module>
         <module>../../solon-projects/solon-detector/solon.health.detector</module>
         <module>../../solon-projects/solon-detector/detector-solon-plugin</module>
-        <module>../../solon-projects/solon-detector/solon-admin-client</module>
-        <module>../../solon-projects/solon-detector/solon-admin-server</module>
-        <module>../../solon-projects/solon-detector/solon-admin-server-ui</module>
+<!--        <module>../../solon-projects/solon-detector/solon-admin-client</module>-->
+<!--        <module>../../solon-projects/solon-detector/solon-admin-server</module>-->
+<!--        <module>../../solon-projects/solon-detector/solon-admin-server-ui</module>-->
+
+        <module>../../solon-projects/solon-scheduling/solon.scheduling</module>
+        <module>../../solon-projects/solon-scheduling/solon.scheduling.simple</module>
+        <module>../../solon-projects/solon-scheduling/solon.scheduling.quartz</module>
+        <module>../../solon-projects/solon-scheduling/solon.extend.schedule</module>
     </modules>
 </project>

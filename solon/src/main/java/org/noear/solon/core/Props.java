@@ -371,9 +371,14 @@ public class Props extends Properties {
             return;
         }
 
-        for (String uri : anno.propertySource()) {
+        for (String uri : anno.profiles()) {
             uri = getByParse(uri);
             loadAdd(ResourceUtil.findResource(classLoader, uri));
+        }
+
+        for (String uri : anno.profilesIfAbsent()) {
+            uri = getByParse(uri);
+            loadAddIfAbsent(ResourceUtil.findResource(classLoader, uri));
         }
     }
 
@@ -462,6 +467,7 @@ public class Props extends Properties {
                 if (addIfAbsent) {
                     //如果已存在，则不盖掉
                     if (containsKey(k1)) {
+                        tempPropMap.remove(k1);
                         continue;
                     }
                 }
@@ -501,7 +507,11 @@ public class Props extends Properties {
 
                         if (key.contains("-")) {
                             String camelKey = buildCamelKey(key);
-                            put(camelKey, v1);
+                            if (addIfAbsent) {
+                                putIfAbsent(camelKey, v1);
+                            } else {
+                                put(camelKey, v1);
+                            }
                         }
                     }
                 }
@@ -527,7 +537,7 @@ public class Props extends Properties {
 
         Properties tempProps = new Properties();
         tempProps.putAll(tempPropMap);
-        this.loadAddDo(tempProps, false, false, isEnd);
+        this.loadAddDo(tempProps, false, isEnd, isEnd); //中间可能会有 put 进来，不能再盖掉
 
         //如果还存在遗留项则抛出异常
         if (isEnd && tempPropMap.size() > 0) {

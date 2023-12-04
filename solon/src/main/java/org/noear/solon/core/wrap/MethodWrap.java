@@ -2,7 +2,6 @@ package org.noear.solon.core.wrap;
 
 import org.noear.solon.Utils;
 import org.noear.solon.annotation.*;
-import org.noear.solon.core.AopContext;
 import org.noear.solon.core.AppContext;
 import org.noear.solon.core.aspect.Interceptor;
 import org.noear.solon.core.aspect.InterceptorEntity;
@@ -26,13 +25,17 @@ import java.util.*;
  * */
 public class MethodWrap implements Interceptor, MethodHolder {
 
-    public MethodWrap(AopContext ctx, Method m) {
-        context = (AppContext) ctx;
+    public MethodWrap(AppContext ctx, Method m) {
+        this(ctx, m, null);
+    }
+
+    public MethodWrap(AppContext ctx, Method m, Map<String,Type> genericInfo) {
+        context = ctx;
 
         declaringClz = m.getDeclaringClass();
 
         method = m;
-        parameters = buildParamsWrap(m.getParameters());
+        parameters = buildParamsWrap(m.getParameters(), genericInfo);
         annotations = m.getAnnotations();
         interceptors = new ArrayList<>();
         interceptorsIdx = new HashSet<>();
@@ -73,10 +76,10 @@ public class MethodWrap implements Interceptor, MethodHolder {
         interceptors.add(new InterceptorEntity(0, this));
     }
 
-    private ParamWrap[] buildParamsWrap(Parameter[] pAry) {
+    private ParamWrap[] buildParamsWrap(Parameter[] pAry, Map<String,Type> genericInfo) {
         ParamWrap[] tmp = new ParamWrap[pAry.length];
         for (int i = 0, len = pAry.length; i < len; i++) {
-            tmp[i] = new ParamWrap(pAry[i]);
+            tmp[i] = new ParamWrap(pAry[i], method, genericInfo);
 
             if (tmp[i].isRequiredBody()) {
                 isRequiredBody = true;
@@ -195,10 +198,6 @@ public class MethodWrap implements Interceptor, MethodHolder {
         return method.getAnnotation(type);
     }
 
-    @Override
-    public <T extends Annotation> T getDeclaringClzAnnotation(Class<T> type) {
-        return null;
-    }
 
 
     /**

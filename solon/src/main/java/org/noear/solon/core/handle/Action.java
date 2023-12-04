@@ -5,11 +5,9 @@ import org.noear.solon.Utils;
 import org.noear.solon.annotation.Consumes;
 import org.noear.solon.annotation.Produces;
 import org.noear.solon.core.*;
-import org.noear.solon.core.event.EventBus;
-import org.noear.solon.core.util.PathUtil;
-import org.noear.solon.core.util.DataThrowable;
+import org.noear.solon.core.runtime.NativeDetector;
+import org.noear.solon.core.util.*;
 import org.noear.solon.core.wrap.MethodWrap;
-import org.noear.solon.core.util.PathAnalyzer;
 import org.noear.solon.annotation.Mapping;
 
 import java.lang.reflect.Method;
@@ -61,7 +59,11 @@ public class Action extends HandlerAide implements Handler {
 
         method.setAccessible(true);
 
-        mWrap = bWrap.context().methodGet(method);
+        if (NativeDetector.isAotRuntime()) {
+            bWrap.context().methodGet(method);
+        }
+
+        mWrap = new MethodWrap(bWrap.context(), method, GenericUtil.getGenericInfo(bWrap.clz()));
         mRemoting = remoting;
         mMapping = mapping;
         bRender = render;
@@ -129,12 +131,15 @@ public class Action extends HandlerAide implements Handler {
     }
 
     /**
-     * 接口名称
+     * 名称
      */
     public String name() {
         return mName;
     }
 
+    /**
+     * 全名称
+     */
     public String fullName() {
         return mFullName;
     }
@@ -306,7 +311,7 @@ public class Action extends HandlerAide implements Handler {
         }
     }
 
-    private void bindPathVarDo(Context c) throws Throwable{
+    private void bindPathVarDo(Context c) throws Throwable {
         if (pathKeysAnalyzer != null) {
             Matcher pm = pathKeysAnalyzer.matcher(c.pathNew());
             if (pm.find()) {
@@ -351,7 +356,8 @@ public class Action extends HandlerAide implements Handler {
             if (obj instanceof Throwable) {
                 if (c.remoting()) {
                     //尝试推送异常，不然没机会记录；也可对后继做控制
-                    EventBus.publishTry(obj);
+                    Throwable objE = (Throwable) obj;
+                    LogUtil.global().warn("Action remoting handle failed: " + c.pathNew(), objE);
 
                     if (c.getRendered() == false) {
                         c.render(obj);

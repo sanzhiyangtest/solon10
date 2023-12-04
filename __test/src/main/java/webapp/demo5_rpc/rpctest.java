@@ -2,7 +2,6 @@ package webapp.demo5_rpc;
 
 import org.noear.nami.Nami;
 import org.noear.nami.NamiAttachment;
-import org.noear.solon.socketd.SocketD;
 import org.noear.nami.coder.snack3.SnackDecoder;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Controller;
@@ -20,7 +19,7 @@ public class rpctest implements Handler {
     public void handle(Context ctx) throws Throwable {
         Map<String, Object> map = new HashMap<>();
 
-        NamiAttachment.put("user_name","noear");
+        NamiAttachment.put("user_name", "noear");
 
         map.put("HttpChannel", httpOf());
         map.put("SocketChannel", socketOf());
@@ -41,7 +40,9 @@ public class rpctest implements Handler {
 
     private Object socketOf() {
         int _port = 20000 + Solon.cfg().serverPort();
-        rockapi client = SocketD.create("tcp://localhost:" + _port, rockapi.class);
+
+        rockapi client = Nami.builder().upstream(() -> "tcp://localhost:" + _port)
+                .create(rockapi.class);
 
         return client.test1(12);
     }

@@ -2,8 +2,10 @@ package org.noear.solon.core.wrap;
 
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.UploadedFile;
+import org.noear.solon.core.runtime.NativeDetector;
 import org.noear.solon.core.util.ClassUtil;
 import org.noear.solon.core.util.ConvertUtil;
+import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.util.ReflectUtil;
 
 import java.lang.reflect.*;
@@ -28,7 +30,7 @@ public class ClassWrap {
     public static ClassWrap get(Class<?> clz) {
         ClassWrap cw = cached.get(clz);
         if (cw == null) {
-            synchronized (clz){
+            synchronized (clz) {
                 cw = cached.get(clz);
                 if (cw == null) {
                     cw = new ClassWrap(clz);
@@ -43,11 +45,12 @@ public class ClassWrap {
     //clz //与函数同名，_开头
     private final Class<?> _clz;
     //clz.methodS
+    private final Method[] declaredMethods;
     private final Method[] methods;
     //clz.fieldS
-    private final List<FieldWrap> fieldWraps;
+    private final List<FieldWrap> declaredFieldWraps;
     //clz.all_fieldS
-    private final Map<String, FieldWrap> fieldAllWrapsMap;
+    private final Map<String, FieldWrap> fieldWrapsMap;
 
     //for record
     private boolean _recordable;
@@ -59,25 +62,26 @@ public class ClassWrap {
         _recordable = true;
 
         //自己申明的函数
-        methods = ReflectUtil.getDeclaredMethods(clz);
+        declaredMethods = ReflectUtil.getDeclaredMethods(clz);
+        methods = ReflectUtil.getMethods(clz);
 
         //所有字段的包装（自己的 + 父类的）
 
-        fieldWraps = new ArrayList<>();
-        fieldAllWrapsMap = new LinkedHashMap<>();
+        declaredFieldWraps = new ArrayList<>();
+        fieldWrapsMap = new LinkedHashMap<>();
 
         //扫描所有字段
-        doScanAllFields(clz, fieldAllWrapsMap::containsKey, fieldAllWrapsMap::put);
+        doScanAllFields(clz, fieldWrapsMap::containsKey, fieldWrapsMap::put);
 
         //自己申明的字段
         for (Field f : ReflectUtil.getDeclaredFields(clz)) {
-            FieldWrap fw = fieldAllWrapsMap.get(f.getName());
+            FieldWrap fw = fieldWrapsMap.get(f.getName());
             if (fw != null) {
-                fieldWraps.add(fw);
+                declaredFieldWraps.add(fw);
             }
         }
 
-        if (fieldWraps.size() == 0) {
+        if (declaredFieldWraps.size() == 0) {
             _recordable = false;
         }
 
@@ -98,40 +102,54 @@ public class ClassWrap {
     /**
      * 获取所有字段的包装（含超类）
      */
-    public Map<String, FieldWrap> getFieldAllWraps() {
-        return Collections.unmodifiableMap(fieldAllWrapsMap);
-    }
-
-    public FieldWrap getFieldWrap(String field) {
-        return fieldAllWrapsMap.get(field);
+    public Map<String, FieldWrap> getFieldWraps() {
+        return Collections.unmodifiableMap(fieldWrapsMap);
     }
 
     /**
-     * 获取申明的Method
+     * @deprecated 2.5
+     * */
+    @Deprecated
+    public Map<String, FieldWrap> getFieldAllWraps() {
+        return getFieldWraps();
+    }
+
+    public FieldWrap getFieldWrap(String field) {
+        return fieldWrapsMap.get(field);
+    }
+
+    /**
+     * 获取自己申明的Method
+     */
+    public Method[] getDeclaredMethods() {
+        return declaredMethods;
+    }
+
+    /**
+     * 获取所有公有的Method
      */
     public Method[] getMethods() {
         return methods;
     }
 
-
     /**
      * 是否为 record
-     * */
+     */
     public boolean recordable() {
         return _recordable;
     }
 
     /**
      * record 构建函数（可能为 null）
-     * */
-    public Constructor recordConstructor(){
+     */
+    public Constructor recordConstructor() {
         return _recordConstructor;
     }
 
     /**
      * record 构造参数（可能为 null）
-     * */
-    public List<ParamWrap> recordParams(){
+     */
+    public List<ParamWrap> recordParams() {
         return _recordParams;
     }
 
@@ -181,9 +199,9 @@ public class ClassWrap {
                         Object val = ConvertUtil.to(p, val0, ctx);
                         argsV[i] = val;
                     } else {
-                        if(p.getType() == UploadedFile.class){
+                        if (p.getType() == UploadedFile.class) {
                             argsV[i] = ctx.file(key);//如果是 UploadedFile
-                        }else {
+                        } else {
                             argsV[i] = null;
                         }
                     }
@@ -227,7 +245,10 @@ public class ClassWrap {
      * @param ctx  上下文
      */
     private void doFill(Object bean, Function<String, String> data, Context ctx) throws Exception {
-        for (Map.Entry<String, FieldWrap> kv : fieldAllWrapsMap.entrySet()) {
+        if (fieldWrapsMap.isEmpty() && NativeDetector.inNativeImage()) {
+            LogUtil.global().warn(String.format("Class: %s don't have any field, can't fill data. you should use: nativeMetadata.registerField(field) at aot runtime.", _clz.getName()));
+        }
+        for (Map.Entry<String, FieldWrap> kv : fieldWrapsMap.entrySet()) {
             String key = kv.getKey();
             String val0 = data.apply(key);
 

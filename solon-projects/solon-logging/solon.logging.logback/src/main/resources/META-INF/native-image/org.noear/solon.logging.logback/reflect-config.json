@@ -14,5 +14,45 @@
   {
     "name": "ch.qos.logback.solon.SolonTagsConverter",
     "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.solon.integration.LogIncubatorImpl",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.ConsoleAppender",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.classic.filter.ThresholdFilter",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.RollingFileAppender",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.classic.filter.ThresholdFilter",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.TimeBasedRollingPolicy",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.classic.encoder.PatternLayoutEncoder",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.helper.DateTokenConverter",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ch.qos.logback.core.rolling.helper.IntegerTokenConverter",
+    "allDeclaredConstructors": true
   }
 ]

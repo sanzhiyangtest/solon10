@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -130,6 +130,10 @@
         </dependency>
         <dependency>
             <groupId>org.noear</groupId>
+            <artifactId>nami.coder.fury</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.noear</groupId>
             <artifactId>nami.coder.protostuff</artifactId>
         </dependency>
         <dependency>
@@ -227,12 +231,31 @@
 
         <dependency>
             <groupId>org.noear</groupId>
-            <artifactId>solon.socketd</artifactId>
+            <artifactId>socketd-transport-java-tcp</artifactId>
+            <version>${socketd.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.noear</groupId>
-            <artifactId>solon.socketd.client.websocket</artifactId>
+            <artifactId>socketd-transport-java-udp</artifactId>
+            <version>${socketd.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>socketd-transport-java-websocket</artifactId>
+            <version>${socketd.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>java-websocket-ns</artifactId>
+            <version>${java-websocket-ns.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>solon.boot.socketd</artifactId>
         </dependency>
 
 <!--        <dependency>-->
@@ -240,36 +263,12 @@
 <!--            <artifactId>solon.boot.websocket</artifactId>-->
 <!--        </dependency>-->
 
+
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>solon.boot.websocket.netty</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.noear</groupId>
-            <artifactId>solon.boot.socketd.websocket</artifactId>
-        </dependency>
-
-
-        <!--        <dependency>-->
-        <!--            <groupId>org.noear</groupId>-->
-        <!--            <artifactId>solon.boot.socketd.rsocket</artifactId>-->
-        <!--        </dependency>-->
-
-<!--                <dependency>-->
-<!--                    <groupId>org.noear</groupId>-->
-<!--                    <artifactId>solon.boot.socketd.jdksocket</artifactId>-->
-<!--                </dependency>-->
-
-        <!--        <dependency>-->
-        <!--            <groupId>org.noear</groupId>-->
-        <!--            <artifactId>solon.boot.socketd.netty</artifactId>-->
-        <!--        </dependency>-->
-
-        <dependency>
-            <groupId>org.noear</groupId>
-            <artifactId>solon.boot.socketd.smartsocket</artifactId>
-        </dependency>
 
 <!--                    <dependency>-->
 <!--                        <groupId>org.noear</groupId>-->
@@ -281,22 +280,27 @@
 <!--                    <artifactId>solon.boot.jlhttp</artifactId>-->
 <!--                </dependency>-->
 
+<!--                <dependency>-->
+<!--                    <groupId>org.noear</groupId>-->
+<!--                    <artifactId>solon.boot.nettyhttp</artifactId>-->
+<!--                    <version>${solon.version}</version>-->
+<!--                </dependency>-->
 
-<!--        <dependency>-->
-<!--            <groupId>org.noear</groupId>-->
-<!--            <artifactId>solon.boot.smarthttp</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>solon.boot.smarthttp</artifactId>
+        </dependency>
 
 
-                <dependency>
-                    <groupId>org.noear</groupId>
-                    <artifactId>solon.boot.undertow</artifactId>
-                </dependency>
+<!--                <dependency>-->
+<!--                    <groupId>org.noear</groupId>-->
+<!--                    <artifactId>solon.boot.undertow</artifactId>-->
+<!--                </dependency>-->
 
-                <dependency>
-                    <groupId>org.noear</groupId>
-                    <artifactId>solon.boot.undertow.add.jsp</artifactId>
-                </dependency>
+<!--                <dependency>-->
+<!--                    <groupId>org.noear</groupId>-->
+<!--                    <artifactId>solon.boot.undertow.add.jsp</artifactId>-->
+<!--                </dependency>-->
 
 
 
@@ -348,6 +352,11 @@
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>solon.serialization.hessian</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.noear</groupId>
+            <artifactId>solon.serialization.fury</artifactId>
         </dependency>
 
 
@@ -447,7 +456,7 @@
 
         <dependency>
             <groupId>org.noear</groupId>
-            <artifactId>solon-test</artifactId>
+            <artifactId>solon-test-junit5</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

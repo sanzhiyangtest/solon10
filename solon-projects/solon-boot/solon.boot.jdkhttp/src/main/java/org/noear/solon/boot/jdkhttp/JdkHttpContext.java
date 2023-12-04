@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPOutputStream;
 
 public class JdkHttpContext extends WebContextBase {
     private HttpExchange _exchange;
@@ -65,19 +64,15 @@ public class JdkHttpContext extends WebContextBase {
         return _exchange;
     }
 
-    private String _ip;
 
     @Override
-    public String ip() {
-        if (_ip == null) {
-            _ip = header(Constants.HEADER_X_FORWARDED_FOR);
+    public String remoteIp() {
+        return _exchange.getRemoteAddress().getAddress().getHostAddress();
+    }
 
-            if (_ip == null) {
-                _ip = _exchange.getRemoteAddress().getAddress().getHostAddress();
-            }
-        }
-
-        return _ip;
+    @Override
+    public int remotePort() {
+        return _exchange.getRemoteAddress().getPort();
     }
 
     @Override

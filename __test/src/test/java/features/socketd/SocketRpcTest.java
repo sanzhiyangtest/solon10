@@ -1,16 +1,16 @@
 package features.socketd;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.noear.nami.Nami;
+import org.noear.nami.channel.socketd.SocketdProxy;
 import org.noear.solon.Solon;
-import org.noear.solon.socketd.SocketD;
-import org.noear.solon.test.SolonJUnit4ClassRunner;
+import org.noear.solon.test.SolonJUnit5Extension;
 import org.noear.solon.test.SolonTest;
 import webapp.App;
 import webapp.demoh_socketd.HelloRpcService;
 
-@RunWith(SolonJUnit4ClassRunner.class)
+@ExtendWith(SolonJUnit5Extension.class)
 @SolonTest(App.class)
 public class SocketRpcTest {
 
@@ -18,7 +18,7 @@ public class SocketRpcTest {
     public void test_rpc_api() throws Throwable {
         int _port = 8080 + 20000;
 
-        HelloRpcService rpc = SocketD.create("tcp://localhost:" + _port, HelloRpcService.class);
+        HelloRpcService rpc = SocketdProxy.create("tcp://localhost:" + _port, HelloRpcService.class);
 
         String rst = rpc.hello("noear");
 
@@ -66,7 +66,7 @@ public class SocketRpcTest {
     @Test
     public void test_rpc_api_ws1() throws Throwable {
         HelloRpcService rpc = Nami.builder()
-                .upstream(() -> "ws://localhost:" + (Solon.cfg().serverPort() + 15000))
+                .upstream(() -> "sd:ws://localhost:" + (Solon.cfg().serverPort() + 20002))
                 .create(HelloRpcService.class);
 
         String rst = rpc.hello("noear");

@@ -6,7 +6,6 @@ import org.noear.solon.boot.web.WebContextBase;
 import org.noear.solon.boot.web.Constants;
 import org.noear.solon.boot.web.RedirectUtils;
 import org.noear.solon.core.NvMap;
-import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.ContextAsyncListener;
 import org.noear.solon.core.handle.UploadedFile;
 import org.noear.solon.core.util.IgnoreCaseMap;
@@ -62,19 +61,14 @@ public class JlHttpContext extends WebContextBase {
         return _request;
     }
 
-    private String _ip;
+    @Override
+    public String remoteIp() {
+        return _request.getSocket().getInetAddress().getHostAddress();
+    }
 
     @Override
-    public String ip() {
-        if (_ip == null) {
-            _ip = header(Constants.HEADER_X_FORWARDED_FOR);
-
-            if (_ip == null) {
-                _ip = _request.getSocket().getInetAddress().getHostAddress();
-            }
-        }
-
-        return _ip;
+    public int remotePort() {
+        return _request.getSocket().getPort();
     }
 
     @Override

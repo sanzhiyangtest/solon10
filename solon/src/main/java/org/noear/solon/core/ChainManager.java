@@ -2,11 +2,9 @@ package org.noear.solon.core;
 
 import org.noear.solon.Solon;
 import org.noear.solon.core.handle.*;
-import org.noear.solon.core.route.PathLimiter;
 import org.noear.solon.core.route.RouterInterceptor;
 import org.noear.solon.core.route.RouterInterceptorChainImpl;
 import org.noear.solon.core.route.RouterInterceptorLimiter;
-import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.util.RankEntity;
 import org.noear.solon.lang.Nullable;
 
@@ -19,6 +17,11 @@ import java.util.*;
  * @since 1.12
  */
 public class ChainManager {
+    /**
+     * 类型集合（用于重复检测）
+     * */
+    private final Set<Class<?>> typeSet = new HashSet<>();
+
     /**
      * 过滤器 节点
      */
@@ -38,6 +41,23 @@ public class ChainManager {
      * 添加过滤器
      */
     public synchronized void addFilter(Filter filter, int index) {
+        typeSet.add(filter.getClass());
+
+        filterNodes.add(new RankEntity(filter, index));
+        filterNodes.sort(Comparator.comparingInt(f -> f.index));
+    }
+
+    /**
+     * 添加过滤器，如果有相同类的则不加
+     */
+    public synchronized void addFilterIfAbsent(Filter filter, int index) {
+        if (typeSet.contains(filter.getClass())) {
+            return;
+        }
+
+        //有同步锁，就不复用上面的代码了
+        typeSet.add(filter.getClass());
+
         filterNodes.add(new RankEntity(filter, index));
         filterNodes.sort(Comparator.comparingInt(f -> f.index));
     }
@@ -78,15 +98,42 @@ public class ChainManager {
      * 添加路由拦截器
      */
     public synchronized void addInterceptor(RouterInterceptor interceptor, int index) {
-        if (interceptor instanceof PathLimiter) {
-            interceptor = new RouterInterceptorLimiter(interceptor, ((PathLimiter) interceptor).pathRule());
-            LogUtil.global().warn("PathLimiter will be discarded, suggested use 'RouterInterceptor:pathPatterns'");
-        } else {
-            interceptor = new RouterInterceptorLimiter(interceptor, interceptor.pathPatterns());
-        }
+        typeSet.add(interceptor.getClass());
 
+        interceptor = new RouterInterceptorLimiter(interceptor, interceptor.pathPatterns());
         interceptorNodes.add(new RankEntity<>(interceptor, index));
         interceptorNodes.sort(Comparator.comparingInt(f -> f.index));
+    }
+
+    /**
+     * 添加路由拦截器，如果有相同类的则不加
+     */
+    public synchronized void addInterceptorIfAbsent(RouterInterceptor interceptor, int index) {
+        if (typeSet.contains(interceptor.getClass())) {
+            return;
+        }
+
+        //有同步锁，就不复用上面的代码了
+        typeSet.add(interceptor.getClass());
+
+        interceptor = new RouterInterceptorLimiter(interceptor, interceptor.pathPatterns());
+        interceptorNodes.add(new RankEntity<>(interceptor, index));
+        interceptorNodes.sort(Comparator.comparingInt(f -> f.index));
+    }
+
+    /**
+     * 移除路由拦截器
+     */
+    public synchronized <T extends RouterInterceptor> void removeInterceptor(Class<T> clz) {
+        typeSet.add(clz);
+
+        interceptorNodes.removeIf(i -> {
+            if (i.target instanceof RouterInterceptorLimiter) {
+                return ((RouterInterceptorLimiter) i.target).getInterceptor().getClass() == clz;
+            } else {
+                return i.target.getClass() == clz;
+            }
+        });
     }
 
     /**

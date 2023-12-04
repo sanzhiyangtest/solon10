@@ -13,7 +13,6 @@ import org.noear.solon.validation.annotation.*;
 import org.noear.solon.validation.annotation.Date;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -320,7 +319,7 @@ public class ValidatorManager {
 
         Result result = Result.succeed();
         List<BeanValidateInfo> list = new ArrayList<>();
-        for (Map.Entry<String, FieldWrap> kv : cw.getFieldAllWraps().entrySet()) {
+        for (Map.Entry<String, FieldWrap> kv : cw.getFieldWraps().entrySet()) {
             FieldWrap fieldWrap = kv.getValue();
 
             for (Annotation anno : kv.getValue().annoS) {
@@ -340,14 +339,21 @@ public class ValidatorManager {
                             rst.setDescription(cw.clz().getSimpleName() + "." + fieldWrap.getName());
                         }
 
-                        if (rst.getData() instanceof BeanValidateInfo == false) {
-                            rst.setData(new BeanValidateInfo(anno, valid.message(anno)));
-                        }
-
                         if (VALIDATE_ALL){
-                            list.add((BeanValidateInfo) rst.getData());
                             result.setCode(rst.getCode());
+                            if (rst.getData() instanceof BeanValidateInfo ) {
+                                list.add((BeanValidateInfo) rst.getData());
+                            }else if (rst.getData() instanceof Collection){
+                                List<BeanValidateInfo> list2 = (List<BeanValidateInfo>) rst.getData();
+                                list.addAll(list2);
+                            }else {
+                                rst.setData(new BeanValidateInfo(anno, valid.message(anno)));
+                                list.add((BeanValidateInfo) rst.getData());
+                            }
                         }else {
+                            if (rst.getData() instanceof BeanValidateInfo == false) {
+                                rst.setData(new BeanValidateInfo(anno, valid.message(anno)));
+                            }
                             return rst;
                         }
                     }

@@ -1,17 +1,19 @@
 package features;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
-import org.noear.solon.test.SolonJUnit4ClassRunner;
+import org.noear.solon.test.SolonJUnit5Extension;
 import org.noear.solon.test.SolonTest;
 import webapp.App;
+import webapp.demo0_bean.AopDemoCom2;
 import webapp.demo6_aop.Bean2;
-import webapp.demo6_aop.ioc.Com1;
+import webapp.demo6_aop.DaoUser;
+import webapp.demo6_aop.ioc.TestCom1;
 import webapp.dso.AutoConfigTest;
 
-@RunWith(SolonJUnit4ClassRunner.class)
+@ExtendWith(SolonJUnit5Extension.class)
 @SolonTest(App.class)
 //@SolonTest(value = webapp.TestApp.class, args = "-server.port=9001")
 public class AopTest {
@@ -25,7 +27,13 @@ public class AopTest {
     AutoConfigTest autoConfigTest;
 
     @Inject
-    Com1 com1;
+    TestCom1 com1;
+
+    @Inject
+    DaoUser daoUser;
+
+    @Inject
+    AopDemoCom2 aopDemoCom2;
 
     //双向依赖的bean测试
     //
@@ -51,4 +59,17 @@ public class AopTest {
     public void test3() {
         assert com1 != null;
     }
+
+    @Test
+    public void test4() {
+        assert daoUser != null;
+        assert daoUser.getClass() != DaoUser.class;
+    }
+
+    @Test
+    public void test5(){
+        aopDemoCom2.test();
+    }
+
+
 }

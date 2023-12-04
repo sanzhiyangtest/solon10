@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>2.5.7-SNAPSHOT</version>
+        <version>2.6.2-SNAPSHOT</version>
         <relativePath>../../solon-parent/pom.xml</relativePath>
     </parent>
 
@@ -36,5 +36,9 @@
         <module>../../solon-projects-cloud/solon-cloud-breaker/guava-solon-cloud-plugin</module>
         <module>../../solon-projects-cloud/solon-cloud-breaker/sentinel-solon-cloud-plugin</module>
         <module>../../solon-projects-cloud/solon-cloud-breaker/semaphore-solon-cloud-plugin</module>
+
+        <module>../../solon-projects-cloud/solon-cloud-job/xxl-job-solon-cloud-plugin</module>
+        <module>../../solon-projects-cloud/solon-cloud-job/quartz-solon-cloud-plugin</module>
+        <module>../../solon-projects-cloud/solon-cloud-job/powerjob-solon-cloud-plugin</module>
     </modules>
 </project>

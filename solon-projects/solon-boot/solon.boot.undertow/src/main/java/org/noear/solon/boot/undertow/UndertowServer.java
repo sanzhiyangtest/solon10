@@ -8,16 +8,11 @@ import io.undertow.servlet.api.*;
 import org.noear.solon.Solon;
 import org.noear.solon.SolonApp;
 import org.noear.solon.Utils;
-import org.noear.solon.boot.ServerConstants;
 import org.noear.solon.boot.ServerLifecycle;
 import org.noear.solon.boot.ServerProps;
-import org.noear.solon.boot.prop.ServerSslProps;
-import org.noear.solon.boot.ssl.SslContextFactory;
 import org.noear.solon.boot.undertow.http.UtHttpContextServletHandler;
 import org.noear.solon.boot.undertow.websocket.UtWsConnectionCallback;
-import org.noear.solon.boot.undertow.websocket._SessionManagerImpl;
 import org.noear.solon.core.event.EventBus;
-import org.noear.solon.socketd.SessionManager;
 
 import static io.undertow.Handlers.websocket;
 
@@ -30,15 +25,6 @@ public class UndertowServer extends UndertowServerBase implements ServerLifecycl
     private boolean isSecure;
     public boolean isSecure() {
         return isSecure;
-    }
-
-    private ServerSslProps sslProps;
-    protected boolean supportSsl() {
-        if (sslProps == null) {
-            sslProps = ServerSslProps.of(ServerConstants.SIGNAL_HTTP);
-        }
-
-        return sslProps.isEnable() && sslProps.getSslKeyStore() != null;
     }
 
     @Override
@@ -83,6 +69,9 @@ public class UndertowServer extends UndertowServerBase implements ServerLifecycl
         }
 
 
+        if (props.getIdleTimeout() > 0) {
+            builder.setServerOption(UndertowOptions.IDLE_TIMEOUT, (int) props.getIdleTimeout());
+        }
         builder.setIoThreads(props.getCoreThreads());
         builder.setWorkerThreads(props.getMaxThreads(props.isIoBound()));
 
@@ -94,9 +83,9 @@ public class UndertowServer extends UndertowServerBase implements ServerLifecycl
             host = "0.0.0.0";
         }
 
-        if (enableSsl && supportSsl()) {
+        if (sslConfig.isSslEnable()) {
             //https
-            builder.addHttpsListener(port, host, SslContextFactory.create(sslProps));
+            builder.addHttpsListener(port, host, sslConfig.getSslContext());
             isSecure = true;
         } else {
             //http
@@ -110,8 +99,6 @@ public class UndertowServer extends UndertowServerBase implements ServerLifecycl
 
         if (app.enableWebSocket()) {
             builder.setHandler(websocket(new UtWsConnectionCallback(), httpHandler));
-
-            SessionManager.register(new _SessionManagerImpl());
         } else {
             builder.setHandler(httpHandler);
         }

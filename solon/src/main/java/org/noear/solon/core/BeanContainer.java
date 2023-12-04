@@ -7,6 +7,7 @@ import org.noear.solon.Utils;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.aspect.Interceptor;
 import org.noear.solon.core.aspect.InterceptorEntity;
+import org.noear.solon.core.bean.LifecycleBean;
 import org.noear.solon.core.exception.InjectionException;
 import org.noear.solon.core.handle.HandlerLoader;
 import org.noear.solon.core.handle.HandlerLoaderFactory;
@@ -14,13 +15,11 @@ import org.noear.solon.core.runtime.AotCollector;
 import org.noear.solon.core.util.ConvertUtil;
 import org.noear.solon.core.util.ResourceUtil;
 
+import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 /**
  * Bean 容器，提供注册及关系映射管理（不直接使用；作为AopContext的基类）
@@ -31,7 +30,7 @@ import java.util.function.Predicate;
 public abstract class BeanContainer {
     private final Props props;
     private final ClassLoader classLoader;
-    private Map<Class<?>, Object> attrs = new HashMap<>();
+    private Map<Class<?>, Object> attachments = new HashMap<>();
     private final AotCollector aot = new AotCollector();
 
 
@@ -51,15 +50,56 @@ public abstract class BeanContainer {
         }
     }
 
-    public AotCollector aot(){
+    public AotCollector aot() {
         return aot;
     }
 
     /**
      * 获取特性
+     *
+     * @deprecated 2.5
      */
+    @Deprecated
     public Map<Class<?>, Object> getAttrs() {
-        return attrs;
+        return attachments;
+    }
+
+    /**
+     * 附件获取
+     *
+     * @since 2.5
+     */
+    public <T> T attachmentGet(Class<T> clz) {
+        return (T) attachments.get(clz);
+    }
+
+    /**
+     * 附件设置
+     *
+     * @since 2.5
+     */
+    public <T> void attachmentSet(Class<T> clz, T val) {
+        attachments.put(clz, val);
+    }
+
+    /**
+     * 附件
+     *
+     * @since 2.5
+     */
+    public <T> T attachmentOf(Class<T> clz, Supplier<T> supplier) {
+        T tmp = (T) attachments.get(clz);
+        if (tmp == null) {
+            synchronized (clz) {
+                tmp = (T) attachments.get(clz);
+                if (tmp == null) {
+                    tmp = supplier.get();
+                    attachments.put(clz, tmp);
+                }
+            }
+        }
+
+        return tmp;
     }
 
     /**
@@ -124,7 +164,7 @@ public abstract class BeanContainer {
         beanWrapsOfName.clear();
         beanWrapSet.clear();
 
-        attrs.clear();
+        attachments.clear();
         aot.clear();
 
         wrapExternalConsumers.clear();
@@ -189,8 +229,8 @@ public abstract class BeanContainer {
 
     /**
      * 是否有提取处理
-     * */
-    public boolean beanExtractorHas(Class<? extends Annotation> annoClz){
+     */
+    public boolean beanExtractorHas(Class<? extends Annotation> annoClz) {
         return beanExtractors.containsKey(annoClz);
     }
 
@@ -222,8 +262,8 @@ public abstract class BeanContainer {
      * 添加环绕处理
      *
      * @param index 执行顺序
-     * @deprecated 2.4
      * @see #beanInterceptorAdd(Class, Interceptor, int)
+     * @deprecated 2.4
      */
     @Deprecated
     public <T extends Annotation> void beanAroundAdd(Class<T> annoClz, Interceptor interceptor, int index) {
@@ -233,8 +273,8 @@ public abstract class BeanContainer {
     /**
      * 添加环绕处理
      *
-     * @deprecated 2.4
      * @see #beanInterceptorAdd(Class, Interceptor)
+     * @deprecated 2.4
      */
     @Deprecated
     public <T extends Annotation> void beanAroundAdd(Class<T> annoClz, Interceptor interceptor) {
@@ -244,8 +284,8 @@ public abstract class BeanContainer {
     /**
      * 获取环绕处理
      *
-     * @deprecated 2.4
      * @see #beanInterceptorGet(Class)
+     * @deprecated 2.4
      */
     @Deprecated
     public <T extends Annotation> InterceptorEntity beanAroundGet(Class<T> annoClz) {
@@ -279,7 +319,9 @@ public abstract class BeanContainer {
      * wrap 外部订阅
      */
     protected void wrapExternalSubscribe(Consumer<BeanWrap> callback) {
-        wrapExternalConsumers.add(callback);
+        synchronized (wrapExternalConsumers) {
+            wrapExternalConsumers.add(callback);
+        }
     }
 
     /**
@@ -294,9 +336,9 @@ public abstract class BeanContainer {
             //避免在forEach时，对它进行add
             Set<Consumer<BeanWrap>> tmp = beanSubscribers.get(nameOrType);
             if (tmp != null) {
-                tmp.forEach(s1 -> {
+                for (Consumer<BeanWrap> s1 : tmp) {
                     s1.accept(wrap);
-                });
+                }
             }
         }
     }
@@ -306,9 +348,11 @@ public abstract class BeanContainer {
      */
     public void wrapPublish(BeanWrap wrap) {
         //避免在forEach时，对它进行add
-        new ArrayList<>(wrapExternalConsumers).forEach(s1 -> {
-            s1.accept(wrap);
-        });
+        synchronized (wrapExternalConsumers) {
+            for (Consumer<BeanWrap> s1 : wrapExternalConsumers) {
+                s1.accept(wrap);
+            }
+        }
     }
 
 
@@ -432,7 +476,7 @@ public abstract class BeanContainer {
 
 
     /**
-     * 获取某类型的 bean
+     * 获取某类型的 bean list
      *
      * @param baseType 基类
      */
@@ -446,6 +490,23 @@ public abstract class BeanContainer {
         });
 
         return beans;
+    }
+
+    /**
+     * 获取某类型的 bean map
+     *
+     * @param baseType 基类
+     */
+    public <T> Map<String,T> getBeansMapOfType(Class<T> baseType) {
+        Map<String, T> beanMap = new HashMap<>();
+
+        beanForeach(bw -> {
+            if (baseType.isAssignableFrom(bw.clz())) {
+                beanMap.put(bw.name(), bw.raw());
+            }
+        });
+
+        return beanMap;
     }
 
     /**
@@ -497,6 +558,7 @@ public abstract class BeanContainer {
     public BeanWrap wrap(Class<?> type) {
         return wrap(type, null);
     }
+
     public BeanWrap wrap(Class<?> type, Object bean) {
         BeanWrap wrap = getWrap(type);
         if (wrap == null) {
@@ -627,7 +689,7 @@ public abstract class BeanContainer {
             //
             // @Inject //使用 type, 注入BEAN
             //
-            if(varH.getType() == null) { //检查类型问题
+            if (varH.getType() == null) { //检查类型问题
                 if (required) {
                     throw new InjectionException("Unrecognized type，injection failed: " + varH.getFullName());
                 } else {
@@ -635,22 +697,36 @@ public abstract class BeanContainer {
                 }
             }
 
-            if(AopContext.class.isAssignableFrom(varH.getType())){
+            if (AppContext.class.isAssignableFrom(varH.getType())) {
                 varH.setValue(this);
                 return;
             }
 
-            if(SolonApp.class.isAssignableFrom(varH.getType())){
+            if (SolonApp.class.isAssignableFrom(varH.getType())) {
                 varH.setValue(Solon.app());
                 return;
             }
 
-            if(varH.getGenericType() != null){
+            if (varH.getGenericType() != null) {
                 //如果是泛型
                 getWrapAsync(varH.getGenericType().getTypeName(), (bw) -> {
                     varH.setValue(bw.get());
                 });
-            }else{
+
+                //补尝处理
+                if(Iterable.class.isAssignableFrom(varH.getType()) == false
+                        && Map.class.isAssignableFrom(varH.getType()) == false){
+
+                    lifecycle(()->{
+                        if(varH.isDone() == false) {
+                            BeanWrap bw = getWrap(varH.getType());
+                            if (bw != null) {
+                                varH.setValue(bw.get());
+                            }
+                        }
+                    });
+                }
+            } else {
                 getWrapAsync(varH.getType(), (bw) -> {
                     varH.setValue(bw.get());
                 });
@@ -660,13 +736,13 @@ public abstract class BeanContainer {
             // @Inject("${classpath:user.yml}") //注入配置文件
             //
             String url = name.substring(12, name.length() - 1);
-            Properties val = Utils.loadProperties(ResourceUtil.getResource(getClassLoader(),url));
+            Properties val = Utils.loadProperties(ResourceUtil.getResource(getClassLoader(), url));
 
             if (val == null) {
                 if (required) {
                     throw new IllegalStateException(name + "  failed to load!");
                 }
-            }else {
+            } else {
                 if (Properties.class == varH.getType()) {
                     varH.setValue(val);
                 } else if (Map.class == varH.getType()) {
@@ -699,8 +775,8 @@ public abstract class BeanContainer {
                 String name3 = name2;
 
                 cfg().onChange((key, val) -> {
-                    if(key.startsWith(name3)){
-                        beanInjectConfig(varH, name3,required);
+                    if (key.startsWith(name3)) {
+                        beanInjectConfig(varH, name3, required);
                     }
                 });
             }
@@ -709,9 +785,9 @@ public abstract class BeanContainer {
             // @Inject("xxx") //使用 name, 注入BEAN
             //
             getWrapAsync(name, (bw) -> {
-                if(BeanWrap.class.isAssignableFrom(varH.getType())){
+                if (BeanWrap.class.isAssignableFrom(varH.getType())) {
                     varH.setValue(bw);
-                }else{
+                } else {
                     varH.setValue(bw.get());
                 }
             });
@@ -760,6 +836,7 @@ public abstract class BeanContainer {
 
     /**
      * 找到真实的name
+     *
      * @param name 原始name，${a:${b:3}}
      * @return 返回真实的name
      */
@@ -786,13 +863,13 @@ public abstract class BeanContainer {
     }
 
 
-    private void beanInjectConfig(VarHolder varH, String name, boolean required){
-        if (Properties.class == varH.getType()) {
+    private void beanInjectConfig(VarHolder varH, String name, boolean required) {
+        if (Properties.class == varH.getType() || Props.class == varH.getType()) {
             //如果是 Properties
             Props val = cfg().getProp(name);
 
-            if(required && val.size() == 0){
-                throw new InjectionException("Missing required property: '" +name+"', config injection failed: " + varH.getFullName());
+            if (required && val.size() == 0) {
+                throw new InjectionException("Missing required property: '" + name + "', config injection failed: " + varH.getFullName());
             }
 
             varH.setValue(val);
@@ -805,8 +882,8 @@ public abstract class BeanContainer {
 
                 if (pt.getName().startsWith("java.lang.") || pt.isPrimitive()) {
                     //如果是java基础类型，则不注入配置值
-                    if(required){
-                        throw new InjectionException("Missing required property: '" +name+"', config injection failed: " + varH.getFullName());
+                    if (required) {
+                        throw new InjectionException("Missing required property: '" + name + "', config injection failed: " + varH.getFullName());
                     }
 
                     varH.setValue(null); //用于触发事件
@@ -818,9 +895,9 @@ public abstract class BeanContainer {
                         Object val2 = PropsConverter.global().convert(val0, null, pt, varH.getGenericType());
                         varH.setValue(val2);
                         aot().registerEntityType(varH.getType(), varH.getGenericType());
-                    }else{
-                        if(required){
-                            throw new InjectionException("Missing required property: '" +name+"', config injection failed: " + varH.getFullName());
+                    } else {
+                        if (required) {
+                            throw new InjectionException("Missing required property: '" + name + "', config injection failed: " + varH.getFullName());
                         }
 
                         varH.setValue(null); //用于触发事件
@@ -833,6 +910,16 @@ public abstract class BeanContainer {
             }
         }
     }
+
+    /**
+     * 添加生命周期 bean
+     */
+    public abstract void lifecycle(LifecycleBean lifecycle);
+
+    /**
+     * 添加生命周期 bean
+     */
+    public abstract void lifecycle(int index, LifecycleBean lifecycle);
 
     //////////////////////////
     //
@@ -884,5 +971,20 @@ public abstract class BeanContainer {
         });
 
         return list;
+    }
+
+    /**
+     * bean 停止（if Closeable）
+     * */
+    protected void beanStop0() {
+        for (BeanWrap bw : beanWrapSet) {
+            if (bw.raw() instanceof Closeable) {
+                try {
+                    ((Closeable) bw.raw()).close();
+                } catch (Throwable e) {
+                    //e.printStackTrace();
+                }
+            }
+        }
     }
 }

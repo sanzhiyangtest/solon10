@@ -4,14 +4,13 @@ import org.noear.solon.Utils;
 import org.noear.solon.boot.ServerConstants;
 import org.noear.solon.boot.ServerLifecycle;
 import org.noear.solon.boot.ServerProps;
-import org.noear.solon.boot.prop.ServerSslProps;
+import org.noear.solon.boot.prop.impl.HttpServerProps;
 import org.noear.solon.boot.smarthttp.http.SmHttpContextHandler;
 import org.noear.solon.boot.smarthttp.websocket.SmWebSocketHandleImpl;
-import org.noear.solon.boot.smarthttp.websocket._SessionManagerImpl;
-import org.noear.solon.boot.ssl.SslContextFactory;
+import org.noear.solon.boot.ssl.SslConfig;
 import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.handle.Handler;
-import org.noear.solon.socketd.SessionManager;
+import org.noear.solon.lang.Nullable;
 import org.smartboot.http.server.HttpBootstrap;
 import org.smartboot.http.server.HttpServerConfiguration;
 import org.smartboot.http.server.impl.Request;
@@ -30,24 +29,16 @@ public class SmHttpServer implements ServerLifecycle {
     private int coreThreads;
     private Executor workExecutor;
     private boolean enableWebSocket;
-    private boolean enableSsl = true;
+    private SslConfig sslConfig = new SslConfig(ServerConstants.SIGNAL_HTTP);
     private boolean enableDebug = false;
     private boolean isSecure;
+
     public boolean isSecure() {
         return isSecure;
     }
 
-    private ServerSslProps sslProps;
-    protected boolean supportSsl() {
-        if (sslProps == null) {
-            sslProps = ServerSslProps.of(ServerConstants.SIGNAL_HTTP);
-        }
-
-        return sslProps.isEnable() && sslProps.getSslKeyStore() != null;
-    }
-
-    public void enableSsl(boolean enable) {
-        this.enableSsl = enable;
+    public void enableSsl(boolean enable, @Nullable SSLContext sslContext) {
+        sslConfig.set(enable, sslContext);
     }
 
     public void enableDebug(boolean enable) {
@@ -78,8 +69,8 @@ public class SmHttpServer implements ServerLifecycle {
             _config.host(host);
         }
 
-        if (enableSsl && supportSsl()) {
-            SSLContext sslContext = SslContextFactory.create(sslProps);
+        if (sslConfig.isSslEnable()) {
+            SSLContext sslContext = sslConfig.getSslContext();
 
             SslPlugin<Request> sslPlugin = new SslPlugin<>(() -> sslContext, sslEngine -> {
                 sslEngine.setUseClientMode(false);
@@ -93,6 +84,9 @@ public class SmHttpServer implements ServerLifecycle {
         _config.bannerEnabled(false);
         _config.readBufferSize(1024 * 8); //默认: 8k
         _config.threadNum(coreThreads);
+
+        //这个是基于通讯层的。。。需要对 http 层和 ws 层分别定制
+        _config.setIdleTimeout(0);
 
 
         if (ServerProps.request_maxHeaderSize > 0) {
@@ -118,8 +112,6 @@ public class SmHttpServer implements ServerLifecycle {
 
         if (enableWebSocket) {
             server.webSocketHandler(new SmWebSocketHandleImpl());
-
-            SessionManager.register(new _SessionManagerImpl());
         }
 
 

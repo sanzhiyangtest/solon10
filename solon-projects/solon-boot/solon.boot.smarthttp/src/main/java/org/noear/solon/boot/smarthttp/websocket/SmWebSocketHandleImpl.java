@@ -1,29 +1,45 @@
 package org.noear.solon.boot.smarthttp.websocket;
 
-import org.noear.solon.Solon;
-import org.noear.solon.core.message.Message;
-import org.noear.solon.core.message.Session;
-import org.noear.solon.socketd.ProtocolManager;
+import org.noear.solon.boot.prop.impl.WebSocketServerProps;
+import org.noear.solon.net.websocket.WebSocket;
+import org.noear.solon.net.websocket.WebSocketRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartboot.http.server.WebSocketRequest;
 import org.smartboot.http.server.WebSocketResponse;
 import org.smartboot.http.server.handler.WebSocketDefaultHandler;
 import org.smartboot.http.server.impl.Request;
+import org.smartboot.socket.util.AttachKey;
+import org.smartboot.socket.util.Attachment;
 
 import java.nio.ByteBuffer;
 
 public class SmWebSocketHandleImpl extends WebSocketDefaultHandler {
     static final Logger log = LoggerFactory.getLogger(SmWebSocketHandleImpl.class);
+    static final WebSocketServerProps wsProps = WebSocketServerProps.getInstance();
+    static final AttachKey<WebSocketImpl> SESSION_KEY = AttachKey.valueOf("SESSION");
+
+    private final WebSocketRouter webSocketRouter = WebSocketRouter.getInstance();
 
     @Override
     public void onHandShake(WebSocketRequest request, WebSocketResponse response) {
-        Solon.app().listener().onOpen(_SocketServerSession.get(request));
+        WebSocketImpl webSocket = new WebSocketImpl(request);
+        if (request.getAttachment() == null) {
+            request.setAttachment(new Attachment());
+        }
+        request.getAttachment().put(SESSION_KEY, webSocket);
+
+        webSocketRouter.getListener().onOpen(webSocket);
+
+        //设置闲置超时
+        if (wsProps.getIdleTimeout() > 0) {
+            webSocket.setIdleTimeout(wsProps.getIdleTimeout());
+        }
     }
 
     @Override
     public void onClose(Request request) {
-        WebSocketRequest request2 =  request.newWebsocketRequest();
+        WebSocketRequest request2 = request.newWebsocketRequest();
         onCloseDo(request2);
     }
 
@@ -33,20 +49,43 @@ public class SmWebSocketHandleImpl extends WebSocketDefaultHandler {
     }
 
     private void onCloseDo(WebSocketRequest request) {
-        _SocketServerSession session = _SocketServerSession.get(request);
+        WebSocketImpl webSocket = request.getAttachment().get(SESSION_KEY);
+        if (webSocket.isClosed()) {
+            return;
+        } else {
+            webSocket.close();
+        }
 
-        session.onClose();
-        Solon.app().listener().onClose(session);
-        _SocketServerSession.remove(request);
+        webSocketRouter.getListener().onClose(webSocket);
+    }
+
+    @Override
+    public void handlePing(WebSocketRequest request, WebSocketResponse response) {
+        super.handlePing(request, response);
+
+        WebSocketImpl webSocket = request.getAttachment().get(SESSION_KEY);
+        if (webSocket != null) {
+            webSocket.onReceive();
+        }
+    }
+
+    @Override
+    public void handlePong(WebSocketRequest request, WebSocketResponse response) {
+        super.handlePong(request, response);
+
+        WebSocketImpl webSocket = request.getAttachment().get(SESSION_KEY);
+        if(webSocket != null) {
+            webSocket.onReceive();
+        }
     }
 
     @Override
     public void handleTextMessage(WebSocketRequest request, WebSocketResponse response, String data) {
         try {
-            Session session = _SocketServerSession.get(request);
-            Message message = Message.wrap(request.getRequestURI(), null, data);
+            WebSocketImpl webSocket = request.getAttachment().get(SESSION_KEY);
+            webSocket.onReceive();
 
-            Solon.app().listener().onMessage(session, message.isString(true));
+            webSocketRouter.getListener().onMessage(webSocket, data);
         } catch (Throwable e) {
             log.warn(e.getMessage(), e);
         }
@@ -55,17 +94,10 @@ public class SmWebSocketHandleImpl extends WebSocketDefaultHandler {
     @Override
     public void handleBinaryMessage(WebSocketRequest request, WebSocketResponse response, byte[] data) {
         try {
-            Session session = _SocketServerSession.get(request);
-            Message message = null;
+            WebSocketImpl webSocket = request.getAttachment().get(SESSION_KEY);
+            webSocket.onReceive();
 
-            if (Solon.app().enableWebSocketD()) {
-                message = ProtocolManager.decode(ByteBuffer.wrap(data));
-            } else {
-                message = Message.wrap(request.getRequestURI(), null, data);
-            }
-
-            Solon.app().listener().onMessage(session, message);
-
+            webSocketRouter.getListener().onMessage(webSocket, ByteBuffer.wrap(data));
         } catch (Throwable e) {
             log.warn(e.getMessage(), e);
         }
@@ -73,6 +105,11 @@ public class SmWebSocketHandleImpl extends WebSocketDefaultHandler {
 
     @Override
     public void onError(WebSocketRequest request, Throwable error) {
-        Solon.app().listener().onError(_SocketServerSession.get(request), error);
+        try {
+            WebSocket webSocket = request.getAttachment().get(SESSION_KEY);
+            webSocketRouter.getListener().onError(webSocket, error);
+        } catch (Throwable e) {
+            log.warn(e.getMessage(), e);
+        }
     }
 }

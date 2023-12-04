@@ -1,20 +1,20 @@
 <h1 align="center" style="text-align:center;">
 <img src="solon_icon.png" width="128" />
 <br />
-Solon v2.5.7-SNAPSHOT
+Solon v2.6.2-SNAPSHOT
 </h1>
 <p align="center">
-	<strong>Java new ecological application development framework, smaller, faster, simpler!</strong>
+	<strong>Java's new application development framework, smaller, faster, and easier!</strong>
 </p>
 <p align="center">
 	<a href="https://solon.noear.org/">https://solon.noear.org</a>
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://central.sonatype.com/search?q=org.noear%2520solon-parent">
+    <a target="_blank" href="https://central.sonatype.com/search?q=org.noear%3Asolon-parent">
         <img src="https://img.shields.io/maven-central/v/org.noear/solon.svg?label=Maven%20Central" alt="Maven" />
     </a>
-    <a target="_blank" href="https://www.apache.org/licenses/LICENSE-2.0.txt">
+    <a target="_blank" href="LICENSE">
 		<img src="https://img.shields.io/:License-Apache2-blue.svg" alt="Apache 2" />
 	</a>
     <a target="_blank" href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
@@ -26,8 +26,8 @@ Solon v2.5.7-SNAPSHOT
     <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html">
 		<img src="https://img.shields.io/badge/JDK-17-green.svg" alt="jdk-17" />
 	</a>
-    <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk20-archive-downloads.html">
-		<img src="https://img.shields.io/badge/JDK-20-green.svg" alt="jdk-20" />
+    <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html">
+		<img src="https://img.shields.io/badge/JDK-21-green.svg" alt="jdk-21" />
 	</a>
     <br />
     <a target="_blank" href='https://gitee.com/noear/solon/stargazers'>
@@ -44,7 +44,7 @@ Solon v2.5.7-SNAPSHOT
 	<img src="https://img.shields.io/badge/QQ交流群-22200020-orange"/></a>
 </p>
 
-##### Language: English | [中文](README.md) | [Русский](README_RU.md) | [日本語](README_JP.md)
+##### Language: English | [中文](README_CN.md) | [Русский](README_RU.md) | [日本語](README_JP.md)
 
 <hr />
 
@@ -70,80 +70,13 @@ Build from scratch. It has its own standards and norms and open ecology. Combina
 
 ## Ecosystem Architecture Diagram:
 
+* solon
+
 <img src="solon_schema.png" width="700" />
 
-## Hello World:
+* solon cloud
 
-```xml
-<parent>
-    <groupId>org.noear</groupId>
-    <artifactId>solon-parent</artifactId>
-    <version>2.5.7-SNAPSHOT</version>   
-</parent>
-
-<dependencies>
-    <dependency>
-        <groupId>org.noear</groupId>
-        <artifactId>solon-web</artifactId>
-    </dependency>
-</dependencies>
-```
-
-```java
-@SolonMain
-public class App {
-    public static void main(String[] args) {
-        Solon.start(App.class, args, app -> {
-            //Handler mode:
-            app.get("/hello", c -> c.output("Hello world!"));
-        });
-    }
-}
-
-//Controller mode: (mvc or rest-api)
-@Controller
-public class HelloController {
-    //Limit Socket method type
-    @Socket
-    @Mapping("/mvc/hello")
-    public String hello(String name) {
-        return "Hello " + name;
-    }
-}
-
-//Remoting mode: (rpc)
-@Mapping("/rpc/")
-@Remoting
-public class HelloServiceImpl implements HelloService {
-    @Override
-    public String hello() {
-        return "Hello world!";
-    }
-}
-```
-
-## Main framework and quick integration development packages：
-
-###### Main framework:
-
-| Component Package                    | Description                          |
-|------------------------|-----------------------------|
-| org.noear:solon-parent | Dependency version management                      |
-| org.noear:solon        | Main framework                         |
-| org.noear:nami         | Companion framework (as solon remoting's client) |
-
-###### Quick integration development packages and relationships：
-
-| Component Package                       | Description                                                    |
-|---------------------------|-------------------------------------------------------|
-| org.noear:solon-lib       | Quick development basic integration package                                             |
-| org.noear:solon-api       | solon-lib + jlhttp boot；quick development of API applications                       |
-| org.noear:solon-web       | solon-api + freemarker + sessionstate；quick development of WEB applications       |
-| org.noear:solon-beetl-web | solon-api + beetl + beetlsql + sessionstate；quick development of WEB applications |
-| org.noear:solon-enjoy-web | solon-api + enjoy + arp + sessionstate；quick development of WEB applications      |
-| org.noear:solon-rpc       | solon-api + nami；quick development of RPC applications                            |
-| org.noear:solon-cloud     | solon-rpc + consul；quick development of microservices applications                          |
-
+<img src="solon_cloud_schema.png" width="700" />
 
 ## Official website and related examples, cases：
 

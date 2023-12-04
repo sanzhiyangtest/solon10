@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
+ * 消费者
+ *
  * @author noear
  * @since 1.3
  * @since 2.4
@@ -51,7 +53,7 @@ public class RabbitConsumer {
             channel.queueBind(config.queue_normal, config.exchangeName, topic, args);
         }
 
-        channel.basicConsume(config.queue_normal, handler);
+        channel.basicConsume(config.queue_normal, false, handler);
     }
 
     /**

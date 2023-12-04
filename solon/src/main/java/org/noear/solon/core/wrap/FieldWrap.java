@@ -1,10 +1,9 @@
 package org.noear.solon.core.wrap;
 
-import org.noear.solon.core.AopContext;
 import org.noear.solon.core.AppContext;
 import org.noear.solon.core.VarHolder;
-import org.noear.solon.core.event.EventBus;
 import org.noear.solon.core.util.GenericUtil;
+import org.noear.solon.core.util.LogUtil;
 import org.noear.solon.core.util.ParameterizedTypeImpl;
 import org.noear.solon.lang.Nullable;
 
@@ -43,7 +42,7 @@ public class FieldWrap {
     public final @Nullable ParameterizedType genericType;
     /**
      * 字段是否只读
-     * */
+     */
     public final boolean readonly;
 
     /**
@@ -58,7 +57,7 @@ public class FieldWrap {
     protected FieldWrap(Class<?> clz, Field f1, boolean isFinal) {
         entityClz = clz;
         field = f1;
-        annoS = f1.getDeclaredAnnotations();
+        annoS = f1.getAnnotations();
         readonly = isFinal;
 
         Type tmp = f1.getGenericType();
@@ -109,22 +108,22 @@ public class FieldWrap {
     }
 
 
-
     private VarDescriptor descriptor;
+
     /**
      * 变量申明者
      *
      * @since 2.3
-     * */
+     */
     public VarDescriptor getDescriptor() {
-        if(descriptor == null){
+        if (descriptor == null) {
             //采用懒加载，不浪费
             descriptor = new FieldWrapDescriptor(this);
         }
         return descriptor;
     }
 
-    public String getName(){
+    public String getName() {
         return field.getName();
     }
 
@@ -132,8 +131,8 @@ public class FieldWrap {
     /**
      * 获取自身的临时对象
      */
-    public VarHolder holder(AopContext ctx, Object obj, Runnable onDone) {
-        return new VarHolderOfField((AppContext) ctx, this, obj, onDone);
+    public VarHolder holder(AppContext ctx, Object obj, Runnable onDone) {
+        return new VarHolderOfField(ctx, this, obj, onDone);
     }
 
     /**
@@ -147,7 +146,7 @@ public class FieldWrap {
         }
     }
 
-    public Object get(Object tObj) throws IllegalAccessException{
+    public Object get(Object tObj) throws IllegalAccessException {
         if (!field.isAccessible()) {
             field.setAccessible(true);
         }
@@ -160,8 +159,9 @@ public class FieldWrap {
     public void setValue(Object tObj, Object val) {
         setValue(tObj, val, false);
     }
+
     public void setValue(Object tObj, Object val, boolean disFun) {
-        if (readonly){
+        if (readonly) {
             return;
         }
 
@@ -228,9 +228,10 @@ public class FieldWrap {
             }
         } catch (NoSuchMethodException e) {
             //正常情况，不用管
-        } catch (Throwable e) {
-            EventBus.publishTry(e);
+        } catch (SecurityException e) {
+            LogUtil.global().warn("FieldWrap doFindSetter failed!", e);
         }
+
         return null;
     }
 }

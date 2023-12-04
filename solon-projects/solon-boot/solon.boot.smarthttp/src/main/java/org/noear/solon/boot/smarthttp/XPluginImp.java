@@ -7,6 +7,7 @@ import org.noear.solon.boot.ServerProps;
 import org.noear.solon.boot.prop.impl.HttpServerProps;
 import org.noear.solon.core.*;
 import org.noear.solon.core.event.EventBus;
+import org.noear.solon.core.util.ClassUtil;
 import org.noear.solon.core.util.LogUtil;
 
 public final class XPluginImp implements Plugin {
@@ -29,6 +30,16 @@ public final class XPluginImp implements Plugin {
             return;
         }
 
+        //如果有jetty插件，就不启动了
+        if (ClassUtil.loadClass("org.noear.solon.boot.jetty.XPluginImp") != null) {
+            return;
+        }
+
+        //如果有undrtow插件，就不启动了
+        if (ClassUtil.loadClass("org.noear.solon.boot.undertow.XPluginImp") != null) {
+            return;
+        }
+
         context.lifecycle(ServerConstants.SIGNAL_LIFECYCLE_INDEX, () -> {
             start0(Solon.app());
         });
@@ -38,7 +49,7 @@ public final class XPluginImp implements Plugin {
         //初始化属性
         ServerProps.init();
 
-        HttpServerProps props = new HttpServerProps();
+        HttpServerProps props = HttpServerProps.getInstance();
         final String _host = props.getHost();
         final int _port = props.getPort();
         final String _name = props.getName();
@@ -70,11 +81,12 @@ public final class XPluginImp implements Plugin {
 
         String connectorInfo = "solon.connector:main: smarthttp: Started ServerConnector@{HTTP/1.1,[http/1.1]";
         if (app.enableWebSocket()) {
-            LogUtil.global().info(connectorInfo + "[WebSocket]}{0.0.0.0:" + _port + "}");
+            String wsServerUrl = props.buildWsServerUrl(_server.isSecure());
+            LogUtil.global().info(connectorInfo + "[WebSocket]}{" + wsServerUrl + "}");
         }
 
-        String serverUrl = props.buildServerUrl(_server.isSecure());
-        LogUtil.global().info(connectorInfo + "}{"+ serverUrl +"}");
+        String httpServerUrl = props.buildHttpServerUrl(_server.isSecure());
+        LogUtil.global().info(connectorInfo + "}{"+ httpServerUrl +"}");
         LogUtil.global().info("Server:main: smarthttp: Started (" + solon_boot_ver() + ") @" + (time_end - time_start) + "ms");
     }
 

@@ -29,7 +29,7 @@ public class RunUtil {
         parallelExecutor = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 60L, TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(),
-                new NamedThreadFactory("Solon-parallelExecutor-"));
+                new NamedThreadFactory("Solon-executor-"));
 
         int asyncPoolSize = Runtime.getRuntime().availableProcessors() * 2;
         asyncExecutor = new ThreadPoolExecutor(asyncPoolSize, asyncPoolSize,
@@ -37,8 +37,9 @@ public class RunUtil {
                 new LinkedBlockingQueue<Runnable>(),
                 new NamedThreadFactory("Solon-asyncExecutor-"));
 
-        scheduledExecutor = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
-                new NamedThreadFactory("Solon-echeduledExecutor-"));
+        int scheduledPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+        scheduledExecutor = new ScheduledThreadPoolExecutor(scheduledPoolSize,
+                new NamedThreadFactory("Solon-scheduledExecutor-"));
     }
 
     public static void setScheduledExecutor(ScheduledExecutorService scheduledExecutor) {
@@ -90,6 +91,17 @@ public class RunUtil {
     }
 
     /**
+     * 运行并吃掉异常
+     */
+    public static void runAndTry(RunnableEx task) {
+        try {
+            task.run();
+        } catch (Throwable e) {
+            //略过
+        }
+    }
+
+    /**
      * 并行执行
      */
     public static Future<?> parallel(Runnable task) {
@@ -117,6 +129,12 @@ public class RunUtil {
         return CompletableFuture.supplyAsync(task, asyncExecutor);
     }
 
+    public static CompletableFuture<Void> asyncAndTry(RunnableEx task) {
+        return CompletableFuture.runAsync(()->{
+            runAndTry(task);
+        }, asyncExecutor);
+    }
+
     /**
      * 延迟执行
      */
@@ -129,5 +147,19 @@ public class RunUtil {
      */
     public static ScheduledFuture<?> delayAndRepeat(Runnable task, long millis) {
         return scheduledExecutor.scheduleWithFixedDelay(task, 1000, millis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 定时任务
+     * */
+    public static ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay, long millisPeriod) {
+        return scheduledExecutor.scheduleAtFixedRate(task, initialDelay, millisPeriod, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 定时任务
+     * */
+    public static ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay, long millisDelay) {
+        return scheduledExecutor.scheduleWithFixedDelay(task, initialDelay, millisDelay, TimeUnit.MILLISECONDS);
     }
 }

@@ -80,7 +80,7 @@ public class SolonApp extends RouterWrapper {
         }
 
         //初始化配置
-        _cfg = new SolonProps().load(source, args);
+        _cfg = new SolonProps(source, args);
         _context = new AppContext(new AppClassLoader(AppClassLoader.global()), _cfg);
 
         //初始化路由
@@ -94,16 +94,18 @@ public class SolonApp extends RouterWrapper {
      * 启动
      */
     protected void start(ConsumerEx<SolonApp> initialize) throws Throwable {
+        //1.0.打印构造时的告警
+        if(_cfg.warns.size() > 0) {
+            for (String warn : _cfg.warns) {
+                LogUtil.global().warn(warn);
+            }
+        }
+
         //2.0.内部初始化等待（尝试ping等待）
         initAwait();
 
         //2.1.内部初始化（如配置等，顺序不能乱）
-        init();
-
-        //2.2.自定义初始化
-        if (initialize != null) {
-            initialize.accept(this);
-        }
+        init(initialize);
 
         //3.运行应用（运行插件、扫描Bean等）
         run();
@@ -136,7 +138,7 @@ public class SolonApp extends RouterWrapper {
     /**
      * 初始化（不能合在构建函数里）
      */
-    private void init() throws Throwable {
+    private void init(ConsumerEx<SolonApp> initialize) throws Throwable {
         List<ClassLoader> loaderList;
 
         //1.尝试加载扩展文件夹
@@ -162,9 +164,10 @@ public class SolonApp extends RouterWrapper {
         //2.尝试扫描插件
         cfg().plugsScan(loaderList);
 
-        //3.尝试设置 context-path
-        if (Utils.isNotEmpty(cfg().serverContextPath())) {
-            this.filter(-99, new ContextPathFilter(cfg().serverContextPath()));
+
+        //3.运行自定义初始化
+        if (initialize != null) {
+            initialize.accept(this);
         }
     }
 
@@ -206,7 +209,7 @@ public class SolonApp extends RouterWrapper {
         LogUtil.global().info("App: Bean scanning");
 
         //2.1.通过注解导入bean（一般是些配置器）
-        importTry();
+        beanImportTry();
 
         //2.2.通过源扫描bean
         if (source() != null) {
@@ -222,7 +225,12 @@ public class SolonApp extends RouterWrapper {
             RenderManager.mapping("." + k, v);
         });
 
-        //3.1.标识上下文加载完成
+        //3.1.尝试设置 context-path
+        if (Utils.isNotEmpty(cfg().serverContextPath())) {
+            this.filterIfAbsent(-99, new ContextPathFilter(false));
+        }
+
+        //3.2.标识上下文加载完成
         context().start();
 
         //event::4.x.推送App load end事件
@@ -230,7 +238,7 @@ public class SolonApp extends RouterWrapper {
     }
 
     //通过注解，导入bean
-    protected void importTry() {
+    protected void beanImportTry() {
         if (_source == null) {
             return;
         }
@@ -430,8 +438,8 @@ public class SolonApp extends RouterWrapper {
         } catch (Throwable ex) {
             ex = Utils.throwableUnwrap(ex);
 
-            //推送异常事件 //todo: Action -> Gateway? -> RouterHandler -> SolonApp!
-            EventBus.publishTry(ex);
+            //推送异常事件 //todo: Action -> Gateway? -> RouterHandler -> Filter -> SolonApp!
+            LogUtil.global().warn("SolonApp tryHandle failed!", ex);
 
             //如果未处理，尝试处理
             if (x.getHandled() == false) {
@@ -496,14 +504,6 @@ public class SolonApp extends RouterWrapper {
         return this;
     }
 
-
-    /**
-     * 订阅未处理异常事件
-     */
-    public SolonApp onError(EventListener<Throwable> handler) {
-        return onEvent(Throwable.class, handler);
-    }
-
     private Map<Integer, Handler> _statusHandlers = new HashMap<>();
 
     /**
@@ -557,78 +557,22 @@ public class SolonApp extends RouterWrapper {
     }
 
 
-    private boolean _enableWebSocketMvc = false;
-
-    public boolean enableWebSocketMvc() {
-        return _enableWebSocketMvc;
-    }
-
-    /**
-     * 启用 WebSocket Mvc 信号接入
-     *
-     * @param enable 是否启用
-     */
-    public SolonApp enableWebSocketMvc(boolean enable) {
-        _enableWebSocketMvc = enable;
-        return this;
-    }
-
-
-    private boolean _enableWebSocketD = false;
-
-    /**
-     * 是否已启用 WebSocket as SockteD 信号接入
-     */
-    public boolean enableWebSocketD() {
-        return _enableWebSocketD && NativeDetector.isNotAotRuntime();
-    }
-
-    /**
-     * 启用 WebSocket as SockteD 信号接入
-     *
-     * @param enable 是否启用
-     */
-    public SolonApp enableWebSocketD(boolean enable) {
-        _enableWebSocketD = enable;
-        return this;
-    }
-
     private boolean _enableSocketD = false;
 
     /**
-     * 是否已启用 Socket as SockteD 信号接入
+     * 是否已启用 SocketD 信号接入
      */
     public boolean enableSocketD() {
         return _enableSocketD && NativeDetector.isNotAotRuntime();
     }
 
     /**
-     * 启用 Socket as SockteD 信号接入
+     * 启用 SocketD 信号接入
      *
      * @param enable 是否启用
      */
     public SolonApp enableSocketD(boolean enable) {
         _enableSocketD = enable;
-        return this;
-    }
-
-
-    private boolean _enableSocketMvc = false;
-
-    /**
-     * 是否已启用 SockteD Mvc 信号接入
-     */
-    public boolean enableSocketMvc() {
-        return _enableSocketMvc;
-    }
-
-    /**
-     * 启用 SockteD Mvc 信号接入
-     *
-     * @param enable 是否启用
-     */
-    public SolonApp enableSocketMvc(boolean enable) {
-        _enableSocketMvc = enable;
         return this;
     }
 
@@ -688,49 +632,6 @@ public class SolonApp extends RouterWrapper {
     public SolonApp enableStaticfiles(boolean enable) {
         _enableStaticfiles = enable;
         return this;
-    }
-
-
-    private boolean _enableDoc = true;
-
-    /**
-     * 是否已启用文档
-     */
-    @SuppressWarnings("removal")
-    @Deprecated
-    public boolean enableDoc() {
-        return _enableDoc;
-    }
-
-    /**
-     * 启用文档
-     *
-     * @param enable 是否启用
-     */
-    @SuppressWarnings("removal")
-    @Deprecated
-    public SolonApp enableDoc(boolean enable) {
-        _enableDoc = enable;
-        return this;
-    }
-
-
-    private boolean _enableErrorAutoprint = true;
-
-    /**
-     * 是否已启用异常自动打印
-     */
-    public boolean enableErrorAutoprint() {
-        return _enableErrorAutoprint;
-    }
-
-    /**
-     * 启用异常自动打印
-     *
-     * @param enable 是否启用
-     */
-    public void enableErrorAutoprint(boolean enable) {
-        _enableErrorAutoprint = enable;
     }
 
 

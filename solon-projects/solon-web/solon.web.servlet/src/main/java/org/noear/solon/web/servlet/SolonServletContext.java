@@ -21,7 +21,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Servlet，适配为 Context
@@ -67,19 +66,14 @@ public class SolonServletContext extends WebContextBase {
         return _request;
     }
 
-    private String _ip;
+    @Override
+    public String remoteIp() {
+        return _request.getRemoteAddr();
+    }
 
     @Override
-    public String ip() {
-        if (_ip == null) {
-            _ip = header("X-Forwarded-For");
-
-            if (_ip == null) {
-                _ip = _request.getRemoteAddr();
-            }
-        }
-
-        return _ip;
+    public int remotePort() {
+        return _request.getRemotePort();
     }
 
     @Override
