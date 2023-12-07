@@ -487,7 +487,8 @@ public class OpenApi2Builder {
     }
 
     private List<Parameter> mergeBodyParamList(ActionHolder actionHolder,List<Parameter> paramList){
-        if (actionHolder.action().consumes().equals("application/json") || paramList.stream().map(Parameter::getIn).anyMatch(in -> in.equals(ApiEnum.PARAM_TYPE_BODY))) {
+        if (actionHolder.action().consumes().equals("application/json") ||
+                (paramList.size() > 1 && paramList.stream().map(Parameter::getIn).allMatch(in -> in.equals(ApiEnum.PARAM_TYPE_BODY)))) {
             BodyParameter finalBodyParameter = new BodyParameter();
             finalBodyParameter.setIn("body");
             finalBodyParameter.name("data");
