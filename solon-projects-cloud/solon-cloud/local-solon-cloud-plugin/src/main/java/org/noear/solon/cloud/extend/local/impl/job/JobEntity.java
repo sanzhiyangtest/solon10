@@ -167,7 +167,7 @@ class JobEntity extends Thread {
 
     private void exec0() {
         try {
-            runnable.run();
+            JobManager.executeJob(runnable);
         } catch (Throwable e) {
             log.warn(e.getMessage(), e);
         }
