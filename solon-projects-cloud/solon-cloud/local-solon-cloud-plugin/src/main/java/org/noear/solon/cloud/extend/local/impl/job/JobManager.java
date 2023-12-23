@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 任务管理器
@@ -18,6 +19,52 @@ import java.util.TimeZone;
  */
 public class JobManager {
     private static Map<String, JobEntity> jobEntityMap = new HashMap<>();
+
+    /**
+     * 是否支持并发执行
+     * 为true时，只要定时时间到了就直接执行，同一个定时任务，同一时间可能有多个线程同时执行
+     * 为false时，定时时间到了之后，如果当前正在执行，会直接跳过，直到下一次定时任务
+     * 通过 JobManager.setParallel 方法设置，默认为true
+     */
+    private static Boolean parallel = true;
+
+    /**
+     * 执行状态判断
+     */
+    private static Map<Integer, Boolean> execFlagMap = new ConcurrentHashMap<>();
+
+    /**
+     * 设置定时任务执行时是否支持并发执行
+     * @param parallelFlag
+     */
+    public static void setParallel(Boolean parallelFlag){
+        parallel = parallelFlag;
+    }
+
+    /**
+     * 执行单次任务
+     * 根据是否控制并发属性，控制是否支持并行执行
+     * @param runnable
+     */
+    public static void executeJob(Runnable runnable){
+        if(parallel){
+            //支持并发执行时，直接执行
+            runnable.run();
+        }else{
+            int jobHashKey = System.identityHashCode(runnable);
+            if(Boolean.TRUE.equals(execFlagMap.get(jobHashKey))){
+                //当前正在执行中，直接跳过此次之行
+                return;
+            }
+            try{
+                execFlagMap.put(jobHashKey, Boolean.TRUE);
+                //真正执行
+                runnable.run();
+            }finally {
+                execFlagMap.remove(jobHashKey);
+            }
+        }
+    }
     private static boolean isStarted = false;
 
     /**
