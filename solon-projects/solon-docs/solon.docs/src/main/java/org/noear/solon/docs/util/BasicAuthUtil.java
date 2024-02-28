@@ -50,7 +50,7 @@ public class BasicAuthUtil {
 
     public static void response401(Context ctx) throws IOException {
         ctx.status(401);
-        ctx.headerSet("WWW-Authenticate", "Basic realm=\"请输入文档访问账号密码\"");
+        ctx.headerSet("WWW-Authenticate", "Basic realm=\"knife4j\"");
         ctx.output("无权限访问");
     }
 }
