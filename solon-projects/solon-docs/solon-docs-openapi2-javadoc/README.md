@@ -1,5 +1,40 @@
 # 接口文档配置文件说明:
 
+## 通用配置示例如下
+```yml
+# 通用属性配置案例， common的配置可以被下方的具体配置覆盖
+# 注意: 请勿将groupName与packageName配置到common,因为就算你配置了也不会加载 🤣
+solon.docs.common:
+  # 默认是否启用
+  enabled: true
+  # 全局响应体是否在数据中 默认为 true
+  globalResponseInData: true
+  # 全局响应体类型 默认为 org.noear.solon.core.handle.Result
+  globalResult: org.noear.solon.core.handle.Result
+  # 标题
+  title: '管理系统_接口文档'
+  # 描述
+  description: '描述：用于管理公司的人员信息,具体包括XXX,XXX模块...'
+  # 版本
+  version: '版本号: 1.0.0'
+  # 作者信息
+  contact:
+    name: chengliang4810
+    email: chengliang4810@163.com
+    url: https://gitee.com/chengliang4810
+
+solon:
+  docs:
+    - # 分组名 默认为 default
+      groupName: 1.测试模块
+      # 包路径 必填
+      packageName: com.layjava.test
+    # 是否开启接口文档 默认为 true
+    - groupName: 2.通用模块
+      # 包路径
+      packageName: com.layjava.web
+```
+
 ## 单分组配置如下
 ```yaml
 solon:

@@ -15,6 +15,11 @@ import java.util.List;
 public class DocsProperty {
 
     /**
+     * 通用配置
+     */
+    private DocsProperty common;
+
+    /**
      * 是否开启接口文档
      */
     private Boolean enabled;
@@ -71,6 +76,14 @@ public class DocsProperty {
             return true;
         }
         return this.enabled;
+    }
+
+    public DocsProperty getCommon() {
+        return common;
+    }
+
+    public void setCommon(DocsProperty common) {
+        this.common = common;
     }
 
     public List<String> getSchemes() {
