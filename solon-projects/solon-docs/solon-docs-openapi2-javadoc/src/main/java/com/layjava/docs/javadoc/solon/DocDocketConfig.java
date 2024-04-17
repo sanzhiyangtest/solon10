@@ -1,5 +1,7 @@
 package com.layjava.docs.javadoc.solon;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
 import com.layjava.docs.javadoc.solon.properties.DocketProperty;
 import com.layjava.docs.javadoc.solon.properties.DocsProperty;
@@ -15,8 +17,14 @@ import org.noear.solon.docs.models.ApiInfo;
 @Configuration
 public class DocDocketConfig {
 
+    /**
+     * 前缀名称
+     */
     private static final String PREFIX_NAME = "com.layjava.docs.javadoc.solon.plugin-";
-
+    /**
+     * 忽略属性
+     */
+    private static final String[] IGNORE_PROPERTIES = new String[]{"groupName", "packageName"};
     /**
      * 批量分组配置
      */
@@ -53,6 +61,10 @@ public class DocDocketConfig {
                 // 获取所有启用
                 .filter(docsProperty -> Boolean.TRUE.equals(docsProperty.isEnabled()))
                 .forEach(docsProperty -> {
+                    //复制属性
+                    if (this.docsProperty != null && this.docsProperty.getCommon() != null){
+                        BeanUtil.copyProperties(this.docsProperty.getCommon(), docsProperty, CopyOptions.create().setOverride(false).setIgnoreProperties(IGNORE_PROPERTIES));
+                    }
                     //构建 DocDocket 实例
                     DocDocket docDocket = new DocDocket();
                     docDocket.groupName(docsProperty.getGroupName());
