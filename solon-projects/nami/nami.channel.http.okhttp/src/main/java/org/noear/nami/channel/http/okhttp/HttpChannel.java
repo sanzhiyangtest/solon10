@@ -7,7 +7,7 @@ import org.noear.nami.common.Constants;
 
 /**
  * Http 通道
- * */
+ */
 public class HttpChannel extends ChannelBase implements Channel {
     public static final HttpChannel instance = new HttpChannel();
 
@@ -27,9 +27,7 @@ public class HttpChannel extends ChannelBase implements Channel {
 
             ctx.args.forEach((k, v) -> {
                 if (v != null) {
-                    sb.append(k).append("=")
-                            .append(HttpUtils.urlEncode(v.toString()))
-                            .append("&");
+                    sb.append(k).append("=").append(HttpUtils.urlEncode(v.toString())).append("&");
                 }
             });
 
@@ -49,8 +47,10 @@ public class HttpChannel extends ChannelBase implements Channel {
         Encoder encoder = ctx.config.getEncoder();
 
         //1.执行并返回
-        if (is_get || ctx.args.size() == 0) {
+        if (is_get) {
             response = http.exec(Constants.METHOD_GET);
+        } else if (ctx.args.size() == 0) {
+            response = http.exec(ctx.action);
         } else {
             if (encoder == null) {
                 String ct0 = ctx.headers.getOrDefault(Constants.HEADER_CONTENT_TYPE, "");
