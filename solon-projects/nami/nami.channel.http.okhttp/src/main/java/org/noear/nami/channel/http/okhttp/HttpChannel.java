@@ -18,9 +18,10 @@ public class HttpChannel extends ChannelBase implements Channel {
         //0.检测method
         boolean is_get = Constants.METHOD_GET.equals(ctx.action);
         String url = ctx.url;
+        String cxtType = ctx.headers.getOrDefault(Constants.HEADER_CONTENT_TYPE, "");
 
-        //0.尝试重构url，非body的应该加到query中
-        if (ctx.args.size() > 0) {
+        //0.尝试重构url，非body的,且不是application/json时，应该加到query中
+        if ((is_get && ctx.args.size() > 0) || (cxtType.contains("application/json") && ctx.args.size() > 0)) {
             StringBuilder sb = new StringBuilder(ctx.url);
             //如果URL中含有固定参数,应该用'&'添加参数
             sb.append(ctx.url.contains("?") ? "&" : "?");
