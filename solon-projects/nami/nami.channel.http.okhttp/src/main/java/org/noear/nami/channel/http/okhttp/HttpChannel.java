@@ -19,8 +19,8 @@ public class HttpChannel extends ChannelBase implements Channel {
         boolean is_get = Constants.METHOD_GET.equals(ctx.action);
         String url = ctx.url;
 
-        //0.尝试重构url
-        if (is_get && ctx.args.size() > 0) {
+        //0.尝试重构url，非body的应该加到query中
+        if (ctx.args.size() > 0) {
             StringBuilder sb = new StringBuilder(ctx.url);
             //如果URL中含有固定参数,应该用'&'添加参数
             sb.append(ctx.url.contains("?") ? "&" : "?");

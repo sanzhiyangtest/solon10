@@ -1,10 +1,13 @@
 package org.noear.nami;
 
-import org.noear.nami.annotation.NamiMapping;
 import org.noear.nami.annotation.NamiClient;
+import org.noear.nami.annotation.NamiMapping;
 import org.noear.nami.common.*;
 
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,7 +21,7 @@ import java.util.regex.Pattern;
  *
  * @author noear
  * @since 1.0
- * */
+ */
 public class NamiHandler implements InvocationHandler {
     private final static Pattern pathKeyExpr = Pattern.compile("\\{([^\\\\}]+)\\}");
 
@@ -161,6 +164,8 @@ public class NamiHandler implements InvocationHandler {
         //确定body及默认编码
         if (methodWrap.getBodyName() != null) {
             body = args.get(methodWrap.getBodyName());
+            // body已经单独处理
+            args.remove(methodWrap.getBodyName());
 
             if (config.getEncoder() == null) {
                 headers.putIfAbsent(Constants.HEADER_CONTENT_TYPE, methodWrap.getBodyAnno().contentType());
