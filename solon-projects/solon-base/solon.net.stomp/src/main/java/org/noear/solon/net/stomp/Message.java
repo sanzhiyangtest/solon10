@@ -38,17 +38,7 @@ public class Message {
         return headers;
     }
 
-    public String getHeader(String key) {
-        if (headers == null) {
-            return null;
-        }
 
-        AtomicReference<String> stringAtomicReference = new AtomicReference<>();
-        headers.stream().filter(header -> key.equals(header.getKey())).findFirst().ifPresent(header -> {
-            stringAtomicReference.set(header.getValue());
-        });
-        return stringAtomicReference.get();
-    }
 
     public String getPayload() {
         return payload;
@@ -58,22 +48,15 @@ public class Message {
         return command;
     }
 
-
-    public String headerValue(String key) {
-        Header header = header(key);
-        if (header != null) {
-            return header.getValue();
+    public String header(String key) {
+        if (headers == null) {
+            return null;
         }
-        return null;
-    }
-
-    public Header header(String key) {
-        if (headers != null) {
-            for (Header header : headers) {
-                if (header.getKey().equals(key)) return header;
-            }
-        }
-        return null;
+        AtomicReference<String> stringAtomicReference = new AtomicReference<>();
+        headers.stream().filter(header -> key.equals(header.getKey())).findFirst().ifPresent(header -> {
+            stringAtomicReference.set(header.getValue());
+        });
+        return stringAtomicReference.get();
     }
 
     @Override
