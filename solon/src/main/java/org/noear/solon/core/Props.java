@@ -489,6 +489,7 @@ public class Props extends Properties {
      */
     protected void loadAddDo(Properties props, boolean toSystem, boolean addIfAbsent, boolean isEnd) {
         if (props != null) {
+            Set<String> recycle = new HashSet<>();
             for (Map.Entry<Object, Object> kv : props.entrySet()) {
                 Object k1 = kv.getKey();
                 Object v1 = kv.getValue();
@@ -516,7 +517,18 @@ public class Props extends Properties {
                         // db1.jdbcUrl=jdbc:mysql:${db1.server}/${db1.db:order}
                         String valExp = (String) v1;
                         v1 = getByTmpl(valExp, props, isEnd);
-
+                        // 递归解析
+                        if (v1 != null){
+                            recycle.add(v1.toString());
+                            while (v1.toString().contains("${") && v1.toString().contains("}")){
+                                v1 = getByTmpl(v1.toString(), props, isEnd);
+                                if (recycle.contains(v1)){
+                                    throw new IllegalStateException(String.format("Config verification failed: circular reference detected, %s", recycle));
+                                }
+                                recycle.add(v1.toString());
+                            }
+                        }
+                        recycle.clear();
                         if (v1 == null) {
                             if (!isEnd) {
                                 tempPropMap.put(key, valExp);
