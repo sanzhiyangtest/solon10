@@ -41,9 +41,7 @@ public class TestQuickConfig {
 
         System.out.println(output);
 
-        assert ONode.load(output).count() == 5;
-
         //完美
-        assert "{\"b1\":true,\"d1\":1.0,\"map1\":{\"time\":\"2023-01-16 17:39:53\",\"long\":12,\"int\":12},\"n1\":1,\"s1\":\"noear\"}".equals(output);
+        assert "<UserDo><b1>true</b1><d1>1.0</d1><map1><time>2023-01-16 17:39:53</time><long>12</long><int>12</int></map1><n1>1</n1><s1>noear</s1></UserDo>".equals(output);
     }
 }
