@@ -88,6 +88,7 @@ public class Solon {
         }
     }
 
+    
     /**
      * 全局默认编码
      */
