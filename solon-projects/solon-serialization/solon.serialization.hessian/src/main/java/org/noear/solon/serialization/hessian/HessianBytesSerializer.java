@@ -67,8 +67,18 @@ public class HessianBytesSerializer implements ContextSerializer<byte[]> {
         ho.flush();
     }
 
+    public Object deserializeFromBodytest22(Context ctx) throws IOException {
+        Hessian2Input hi = new Hessian2Input(ctx.bodyAsStream());
+        return hi.readObject();
+    }
+
     @Override
     public Object deserializeFromBody(Context ctx) throws IOException {
+        Hessian2Input hi = new Hessian2Input(ctx.bodyAsStream());
+        return hi.readObject();
+    }
+
+    public Object deserializeFromBodytest(Context ctx) throws IOException {
         Hessian2Input hi = new Hessian2Input(ctx.bodyAsStream());
         return hi.readObject();
     }
