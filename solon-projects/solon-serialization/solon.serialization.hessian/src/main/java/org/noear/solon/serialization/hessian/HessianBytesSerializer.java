@@ -72,4 +72,6 @@ public class HessianBytesSerializer implements ContextSerializer<byte[]> {
         Hessian2Input hi = new Hessian2Input(ctx.bodyAsStream());
         return hi.readObject();
     }
+
+    
 }
