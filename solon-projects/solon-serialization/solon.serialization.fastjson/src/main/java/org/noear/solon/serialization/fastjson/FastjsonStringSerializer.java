@@ -144,4 +144,18 @@ public class FastjsonStringSerializer implements ContextSerializer<String> {
             return null;
         }
     }
+
+    public Object deserializeFromBody234(Context ctx) throws IOException {
+        String data = ctx.bodyNew();
+
+        if (Utils.isNotEmpty(data)) {
+            if (deserializeConfig == null) {
+                return JSON.parse(data, deserializeFeatures);
+            } else {
+                return JSON.parse(data, deserializeConfig, deserializeFeatures);
+            }
+        } else {
+            return null;
+        }
+    }
 }
